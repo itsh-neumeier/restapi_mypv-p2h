@@ -23,8 +23,8 @@ class MypvP2hEntity(CoordinatorEntity[MypvP2hCoordinator]):
         return DeviceInfo(
             identifiers={(DOMAIN, self._entry_id)},
             name="myPV P2H",
-            manufacturer="myPV",
+            manufacturer="my-PV GmbH",
             model="AC ELWA 2",
             sw_version=data.get("fwversion"),
-            configuration_url=f"http://{self.coordinator.host}",
+            configuration_url=f"http://{self.coordinator.host}/control.html",
         )

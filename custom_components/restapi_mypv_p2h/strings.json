@@ -38,7 +38,30 @@
       "power_grid":     { "name": "Grid power" },
       "volt_mains":     { "name": "Mains voltage" },
       "freq":           { "name": "Mains frequency" },
-      "temp_ps":        { "name": "Power stage temperature" }
+      "temp_ps":        { "name": "Power stage temperature" },
+      "upd_state": {
+        "name": "Firmware update",
+        "state": {
+          "no_update":    "No update",
+          "available":    "Update available",
+          "downloading":  "Downloading",
+          "interrupted":  "Interrupted",
+          "ready":        "Ready for installation"
+        }
+      },
+      "warnings": {
+        "name": "Device status",
+        "state": {
+          "ok":               "OK",
+          "stl_triggered":    "STL triggered",
+          "overtemp":         "Power stage overtemp",
+          "temp_probe_fault": "Power stage temp probe fault",
+          "hardware_fault":   "Hardware fault",
+          "temp_sensor_fault":"Temp sensor fault (immersion heater)",
+          "mainboard_error":  "Mainboard error"
+        }
+      },
+      "cur_ip":         { "name": "Device IP" }
     },
     "binary_sensor": {
       "boost_active": { "name": "Boost active" },

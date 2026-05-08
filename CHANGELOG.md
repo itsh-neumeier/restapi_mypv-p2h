@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.13] - 2026-05-08
+
+### Added
+- Sensor `upd_state` — Firmware-Update-Status (ENUM: Kein Update / Verfügbar / Lädt / Unterbrochen / Bereit)
+- Sensor `warnings` — Gerätestatus/Fehlercode (ENUM, Klartextzuordnung DE+EN für alle Status-Codes aus Doku: STL, Übertemp, Sondenfehler, Hardwarefehler, Sensorfehler, Mainboard)
+- Sensor `cur_ip` — Geräte-IP-Adresse (DIAGNOSTIC)
+
+### Changed
+- Gerät-Link ("Besuchen") öffnet jetzt direkt `/control.html` (Steuerungsseite)
+- Hersteller in Geräteinfo: "my-PV GmbH"
+
 ## [1.0.12] - 2026-05-08
 
 ### Added

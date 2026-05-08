@@ -38,7 +38,30 @@
       "power_grid":     { "name": "Netzleistung" },
       "volt_mains":     { "name": "Netzspannung" },
       "freq":           { "name": "Netzfrequenz" },
-      "temp_ps":        { "name": "Leistungsstufen-Temperatur" }
+      "temp_ps":        { "name": "Leistungsstufen-Temperatur" },
+      "upd_state": {
+        "name": "Firmware-Update",
+        "state": {
+          "no_update":    "Kein Update",
+          "available":    "Update verfügbar",
+          "downloading":  "Wird heruntergeladen",
+          "interrupted":  "Unterbrochen",
+          "ready":        "Bereit zur Installation"
+        }
+      },
+      "warnings": {
+        "name": "Gerätestatus",
+        "state": {
+          "ok":               "OK",
+          "stl_triggered":    "STL ausgelöst",
+          "overtemp":         "Leistungsstufe überhitzt",
+          "temp_probe_fault": "Temperatursonde Leistungsstufe defekt",
+          "hardware_fault":   "Hardwarefehler",
+          "temp_sensor_fault":"Temperatursensor defekt (Heizstab)",
+          "mainboard_error":  "Mainboard-Fehler"
+        }
+      },
+      "cur_ip":         { "name": "Geräte-IP" }
     },
     "binary_sensor": {
       "boost_active": { "name": "Boost aktiv" },

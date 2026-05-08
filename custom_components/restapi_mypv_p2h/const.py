@@ -23,6 +23,9 @@ ELWA2_DATA_KEYS = {
     "volt_mains": "volt_mains",
     "freq": "freq",
     "temp_ps": "temp_ps",
+    "upd_state": "upd_state",
+    "warnings": "warnings",
+    "cur_ip": "cur_ip",
 }
 
 STATUS_BLOCK = 1

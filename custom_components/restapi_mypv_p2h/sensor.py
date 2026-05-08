@@ -1,7 +1,7 @@
 """Sensors for myPV P2H."""
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -24,6 +24,24 @@ from .const import DOMAIN, ELWA2_DATA_KEYS
 from .coordinator import MypvP2hCoordinator
 from .entity import MypvP2hEntity
 
+UPD_STATE_MAP: dict[int, str] = {
+    0: "no_update",
+    1: "available",
+    3: "downloading",
+    5: "interrupted",
+    10: "ready",
+}
+
+WARNINGS_MAP: dict[int, str] = {
+    0: "ok",
+    201: "stl_triggered",
+    202: "overtemp",
+    203: "temp_probe_fault",
+    204: "hardware_fault",
+    205: "temp_sensor_fault",
+    209: "mainboard_error",
+}
+
 
 @dataclass(frozen=True, kw_only=True)
 class MypvP2hSensorDescription(SensorEntityDescription):
@@ -32,6 +50,7 @@ class MypvP2hSensorDescription(SensorEntityDescription):
     data_key: str
     scale: float = 1.0
     optional: bool = False
+    value_map: dict[int, str] | None = field(default=None, compare=False)
 
 
 SENSORS: tuple[MypvP2hSensorDescription, ...] = (
@@ -129,6 +148,33 @@ SENSORS: tuple[MypvP2hSensorDescription, ...] = (
         scale=0.1,
         optional=True,
     ),
+    MypvP2hSensorDescription(
+        key="upd_state",
+        data_key=ELWA2_DATA_KEYS["upd_state"],
+        translation_key="upd_state",
+        device_class=SensorDeviceClass.ENUM,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        options=list(UPD_STATE_MAP.values()),
+        value_map=UPD_STATE_MAP,
+        optional=True,
+    ),
+    MypvP2hSensorDescription(
+        key="warnings",
+        data_key=ELWA2_DATA_KEYS["warnings"],
+        translation_key="warnings",
+        device_class=SensorDeviceClass.ENUM,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        options=list(WARNINGS_MAP.values()),
+        value_map=WARNINGS_MAP,
+        optional=True,
+    ),
+    MypvP2hSensorDescription(
+        key="cur_ip",
+        data_key=ELWA2_DATA_KEYS["cur_ip"],
+        translation_key="cur_ip",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        optional=True,
+    ),
 )
 
 
@@ -163,6 +209,8 @@ class MypvP2hSensor(MypvP2hEntity, SensorEntity):
         value = self.coordinator.data.get(self.entity_description.data_key)
         if value is None:
             return None
+        if self.entity_description.value_map is not None:
+            return self.entity_description.value_map.get(int(value), str(value))
         if self.entity_description.scale != 1.0:
             return round(value * self.entity_description.scale, 1)
         return value
