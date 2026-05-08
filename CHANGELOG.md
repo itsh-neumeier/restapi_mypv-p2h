@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.4] - 2026-05-08
+
+### Fixed
+- `target_power` shows "unknown" when device does not return `power` field — falls back to last sent value
+- `target_power` UI mode changed from slider to input box
+
 ## [1.0.3] - 2026-05-08
 
 ### Added
