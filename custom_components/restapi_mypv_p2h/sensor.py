@@ -24,6 +24,7 @@ class MypvP2hSensorDescription(SensorEntityDescription):
     """Extended sensor description."""
 
     data_key: str
+    scale: float = 1.0
 
 
 SENSORS: tuple[MypvP2hSensorDescription, ...] = (
@@ -43,6 +44,7 @@ SENSORS: tuple[MypvP2hSensorDescription, ...] = (
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
+        scale=0.1,
     ),
     MypvP2hSensorDescription(
         key="temperature_2",
@@ -51,6 +53,7 @@ SENSORS: tuple[MypvP2hSensorDescription, ...] = (
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
+        scale=0.1,
     ),
     MypvP2hSensorDescription(
         key="energy_today",
@@ -91,7 +94,12 @@ class MypvP2hSensor(MypvP2hEntity, SensorEntity):
 
     @property
     def native_value(self) -> float | int | None:
-        return self.coordinator.data.get(self.entity_description.data_key)
+        value = self.coordinator.data.get(self.entity_description.data_key)
+        if value is None:
+            return None
+        if self.entity_description.scale != 1.0:
+            return round(value * self.entity_description.scale, 1)
+        return value
 
     @property
     def available(self) -> bool:
