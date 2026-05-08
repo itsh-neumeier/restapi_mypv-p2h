@@ -38,7 +38,7 @@
       "power_grid":     { "name": "Netzleistung" },
       "volt_mains":     { "name": "Netzspannung" },
       "freq":           { "name": "Netzfrequenz" },
-      "temp_ps":        { "name": "Leistungsstufen-Temperatur" },
+      "temp_ps":        { "name": "Geräte-Temperatur" },
       "upd_state": {
         "name": "Firmware-Update",
         "state": {

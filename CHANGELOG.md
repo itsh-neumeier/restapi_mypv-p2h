@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.0.14] - 2026-05-08
+
+### Changed
+- `temp_ps` umbenannt: "Leistungsstufen-Temperatur" → "Geräte-Temperatur" / "Device temperature"
+
 ## [1.0.13] - 2026-05-08
 
 ### Added
