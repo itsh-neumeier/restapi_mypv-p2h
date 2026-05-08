@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.8] - 2026-05-08
+
+### Fixed
+- Brand assets in `brand/` folder (was `brands/`) — HACS and HA integration card now show logo and icon correctly
+- Added `icon.png` / `icon@2x.png` directly in integration folder (required by HA)
+- PNG icons generated from official my-PV logo
+
 ## [1.0.7] - 2026-05-08
 
 ### Fixed
