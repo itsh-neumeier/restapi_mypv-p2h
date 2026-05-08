@@ -19,10 +19,12 @@ class MypvP2hEntity(CoordinatorEntity[MypvP2hCoordinator]):
 
     @property
     def device_info(self) -> DeviceInfo:
+        data = self.coordinator.data or {}
         return DeviceInfo(
             identifiers={(DOMAIN, self._entry_id)},
             name="myPV P2H",
             manufacturer="myPV",
-            model="ELWA2",
+            model="AC ELWA 2",
+            sw_version=data.get("fwversion"),
             configuration_url=f"http://{self.coordinator.host}",
         )

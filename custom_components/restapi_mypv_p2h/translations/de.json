@@ -33,7 +33,12 @@
       "surplus":        { "name": "PV-Überschuss" },
       "temperature_1":  { "name": "Temperatur 1" },
       "temperature_2":  { "name": "Temperatur 2" },
-      "control_state":  { "name": "Steuerstatus" }
+      "control_state":  { "name": "Steuerstatus" },
+      "power_solar":    { "name": "PV-Leistung" },
+      "power_grid":     { "name": "Netzleistung" },
+      "volt_mains":     { "name": "Netzspannung" },
+      "freq":           { "name": "Netzfrequenz" },
+      "temp_ps":        { "name": "Leistungsstufen-Temperatur" }
     },
     "binary_sensor": {
       "boost_active": { "name": "Boost aktiv" },

@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.12] - 2026-05-08
+
+### Added
+- Sensor `power_solar` — PV-Leistung vom Gerät gemessen (W)
+- Sensor `power_grid` — Netzleistung (W, negativ = Einspeisung)
+- Sensor `volt_mains` — Netzspannung (V, DIAGNOSTIC)
+- Sensor `freq` — Netzfrequenz (Hz, skaliert aus mHz, DIAGNOSTIC)
+- Sensor `temp_ps` — Leistungsstufen-Temperatur (°C, DIAGNOSTIC)
+- `device_info.sw_version` aus `fwversion`-Feld (wird im Gerätepanel angezeigt)
+- `device_info.model` korrigiert auf "AC ELWA 2"
+
 ## [1.0.11] - 2026-05-08
 
 ### Fixed

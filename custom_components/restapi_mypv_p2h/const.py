@@ -18,6 +18,11 @@ ELWA2_DATA_KEYS = {
     "surplus": "surplus",
     "block": "blockactive",
     "ctrlstate": "ctrlstate",
+    "power_solar": "power_solar",
+    "power_grid": "power_grid",
+    "volt_mains": "volt_mains",
+    "freq": "freq",
+    "temp_ps": "temp_ps",
 }
 
 STATUS_BLOCK = 1

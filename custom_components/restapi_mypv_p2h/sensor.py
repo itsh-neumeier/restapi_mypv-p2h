@@ -10,7 +10,13 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import EntityCategory, UnitOfPower, UnitOfTemperature
+from homeassistant.const import (
+    EntityCategory,
+    UnitOfElectricPotential,
+    UnitOfFrequency,
+    UnitOfPower,
+    UnitOfTemperature,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -71,6 +77,56 @@ SENSORS: tuple[MypvP2hSensorDescription, ...] = (
         data_key=ELWA2_DATA_KEYS["ctrlstate"],
         translation_key="control_state",
         entity_category=EntityCategory.DIAGNOSTIC,
+        optional=True,
+    ),
+    MypvP2hSensorDescription(
+        key="power_solar",
+        data_key=ELWA2_DATA_KEYS["power_solar"],
+        translation_key="power_solar",
+        native_unit_of_measurement=UnitOfPower.WATT,
+        device_class=SensorDeviceClass.POWER,
+        state_class=SensorStateClass.MEASUREMENT,
+        optional=True,
+    ),
+    MypvP2hSensorDescription(
+        key="power_grid",
+        data_key=ELWA2_DATA_KEYS["power_grid"],
+        translation_key="power_grid",
+        native_unit_of_measurement=UnitOfPower.WATT,
+        device_class=SensorDeviceClass.POWER,
+        state_class=SensorStateClass.MEASUREMENT,
+        optional=True,
+    ),
+    MypvP2hSensorDescription(
+        key="volt_mains",
+        data_key=ELWA2_DATA_KEYS["volt_mains"],
+        translation_key="volt_mains",
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+        device_class=SensorDeviceClass.VOLTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        optional=True,
+    ),
+    MypvP2hSensorDescription(
+        key="freq",
+        data_key=ELWA2_DATA_KEYS["freq"],
+        translation_key="freq",
+        native_unit_of_measurement=UnitOfFrequency.HERTZ,
+        device_class=SensorDeviceClass.FREQUENCY,
+        state_class=SensorStateClass.MEASUREMENT,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        scale=0.001,
+        optional=True,
+    ),
+    MypvP2hSensorDescription(
+        key="temp_ps",
+        data_key=ELWA2_DATA_KEYS["temp_ps"],
+        translation_key="temp_ps",
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        scale=0.1,
         optional=True,
     ),
 )
