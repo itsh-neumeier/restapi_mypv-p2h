@@ -1,4 +1,4 @@
-"""The myPV ELWA2 integration."""
+"""The myPV P2H integration."""
 from __future__ import annotations
 
 from homeassistant.config_entries import ConfigEntry
@@ -12,7 +12,7 @@ PLATFORMS = [Platform.SENSOR, Platform.BINARY_SENSOR, Platform.NUMBER]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up myPV ELWA2 from a config entry."""
+    """Set up myPV P2H from a config entry."""
     host = entry.data[CONF_HOST]
     scan_interval = entry.options.get(
         CONF_SCAN_INTERVAL,

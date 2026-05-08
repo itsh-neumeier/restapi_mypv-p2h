@@ -1,4 +1,4 @@
-"""Sensors for myPV ELWA2."""
+"""Sensors for myPV P2H."""
 from __future__ import annotations
 
 from dataclasses import dataclass

@@ -1,4 +1,4 @@
-"""Number entity for myPV ELWA2."""
+"""Number entity for myPV P2H."""
 from __future__ import annotations
 
 import logging

@@ -1,4 +1,4 @@
-"""Constants for the myPV ELWA2 integration."""
+"""Constants for the myPV P2H integration."""
 from __future__ import annotations
 
 DOMAIN = "restapi_mypv_p2h"

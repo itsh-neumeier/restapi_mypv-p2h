@@ -1,4 +1,4 @@
-"""Config flow for myPV ELWA2."""
+"""Config flow for myPV P2H."""
 from __future__ import annotations
 
 import aiohttp
@@ -20,7 +20,7 @@ from .const import (
 
 
 class MypvP2hConfigFlow(ConfigFlow, domain=DOMAIN):
-    """Config flow for myPV ELWA2."""
+    """Config flow for myPV P2H."""
 
     VERSION = 1
 
@@ -33,7 +33,7 @@ class MypvP2hConfigFlow(ConfigFlow, domain=DOMAIN):
 
             if await self._test_connection(host):
                 return self.async_create_entry(
-                    title=f"myPV ELWA2 ({host})",
+                    title=f"myPV P2H ({host})",
                     data=user_input,
                 )
             errors["base"] = "cannot_connect"
@@ -74,7 +74,7 @@ class MypvP2hConfigFlow(ConfigFlow, domain=DOMAIN):
 
 
 class MypvP2hOptionsFlow(OptionsFlow):
-    """Options flow for myPV ELWA2."""
+    """Options flow for myPV P2H."""
 
     async def async_step_init(self, user_input: dict | None = None) -> FlowResult:
         if user_input is not None:

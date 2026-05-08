@@ -1,4 +1,4 @@
-"""Base entity for myPV ELWA2."""
+"""Base entity for myPV P2H."""
 from __future__ import annotations
 
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -21,7 +21,7 @@ class MypvP2hEntity(CoordinatorEntity[MypvP2hCoordinator]):
     def device_info(self) -> DeviceInfo:
         return DeviceInfo(
             identifiers={(DOMAIN, self._entry_id)},
-            name="myPV ELWA2",
+            name="myPV P2H",
             manufacturer="myPV",
             model="ELWA2",
             configuration_url=f"http://{self.coordinator.host}",

@@ -1,4 +1,4 @@
-"""Binary sensors for myPV ELWA2."""
+"""Binary sensors for myPV P2H."""
 from __future__ import annotations
 
 from dataclasses import dataclass

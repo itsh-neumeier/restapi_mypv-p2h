@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.0.2] - 2026-05-08
+
+### Changed
+- Rename integration display name from "myPV ELWA2" to "myPV P2H" (Power to Heat)
+
 ## [1.0.1] - 2026-05-08
 
 ### Fixed

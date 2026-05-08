@@ -1,7 +1,7 @@
 {
   "domain": "restapi_mypv_p2h",
-  "name": "myPV ELWA2",
-  "version": "1.0.1",
+  "name": "myPV P2H",
+  "version": "1.0.2",
   "homeassistant": "2024.1.0",
   "documentation": "https://github.com/itsh-neumeier/ha-mypv-elwa2",
   "issue_tracker": "https://github.com/itsh-neumeier/ha-mypv-elwa2/issues",

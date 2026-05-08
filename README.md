@@ -1,6 +1,6 @@
-# myPV ELWA2 — Home Assistant Integration
+# myPV P2H — Home Assistant Integration
 
-Lokale Home Assistant Integration für den myPV ELWA2 Heizstab.
+Lokale Home Assistant Integration für den myPV P2H Heizstab.
 Liest Gerätedaten per HTTP-Polling und erlaubt die Leistungsvorgabe (0–3500 W) direkt aus HA.
 
 ## Features
@@ -15,14 +15,14 @@ Liest Gerätedaten per HTTP-Polling und erlaubt die Leistungsvorgabe (0–3500 W
 ## Requirements
 
 - Home Assistant ≥ 2024.1
-- myPV ELWA2 im gleichen Netzwerk erreichbar
+- myPV P2H im gleichen Netzwerk erreichbar
 
 ## Installation
 
 ### HACS (empfohlen)
 
 1. HACS → Custom Repositories → `https://github.com/itsh-neumeier/ha-mypv-elwa2` → Typ: Integration
-2. Integration suchen: **myPV ELWA2** → Installieren
+2. Integration suchen: **myPV P2H** → Installieren
 3. HA neu starten
 
 ### Manuell
@@ -32,7 +32,7 @@ Liest Gerätedaten per HTTP-Polling und erlaubt die Leistungsvorgabe (0–3500 W
 
 ## Konfiguration
 
-**Einstellungen → Geräte & Dienste → Integration hinzufügen → myPV ELWA2**
+**Einstellungen → Geräte & Dienste → Integration hinzufügen → myPV P2H**
 
 | Parameter       | Default | Beschreibung                  |
 |-----------------|---------|-------------------------------|

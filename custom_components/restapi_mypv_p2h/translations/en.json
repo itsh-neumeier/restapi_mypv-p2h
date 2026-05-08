@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "Connect myPV ELWA2",
+        "title": "Connect myPV P2H",
         "data": {
           "host": "Host (IP address)",
           "scan_interval": "Scan interval (seconds)"
@@ -19,7 +19,7 @@
   "options": {
     "step": {
       "init": {
-        "title": "myPV ELWA2 Options",
+        "title": "myPV P2H Options",
         "data": {
           "scan_interval": "Scan interval (seconds)"
         }

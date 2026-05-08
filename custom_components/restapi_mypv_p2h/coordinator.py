@@ -1,4 +1,4 @@
-"""DataUpdateCoordinator for myPV ELWA2."""
+"""DataUpdateCoordinator for myPV P2H."""
 from __future__ import annotations
 
 import logging
@@ -20,7 +20,7 @@ KEEPALIVE_INTERVAL = timedelta(seconds=5)
 
 
 class MypvP2hCoordinator(DataUpdateCoordinator[dict]):
-    """Coordinator for myPV ELWA2."""
+    """Coordinator for myPV P2H."""
 
     def __init__(self, hass: HomeAssistant, host: str, scan_interval: int) -> None:
         super().__init__(
@@ -43,7 +43,7 @@ class MypvP2hCoordinator(DataUpdateCoordinator[dict]):
                 resp.raise_for_status()
                 return await resp.json(content_type=None)
         except Exception as err:
-            raise UpdateFailed(f"Error communicating with ELWA2: {err}") from err
+            raise UpdateFailed(f"Error communicating with myPV P2H: {err}") from err
 
     async def async_set_power(self, power: int) -> None:
         """Send power setpoint and manage keepalive."""
