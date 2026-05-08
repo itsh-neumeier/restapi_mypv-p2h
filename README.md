@@ -50,3 +50,21 @@ Liest Gerätedaten per HTTP-Polling und erlaubt die Leistungsvorgabe (0–3500 W
 | `boost_active`   | binary_sensor  | —       | Boost-Modus aktiv          |
 | `error`          | binary_sensor  | —       | Gerätefehler               |
 | `target_power`   | number         | W       | Leistungsvorgabe 0–3500 W  |
+
+## Blueprint – Dynamische PV-Überschuss-Steuerung
+
+[![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fraw.githubusercontent.com%2Fitsh-neumeier%2Frestapi_mypv-p2h%2Fmaster%2Fblueprints%2Fautomation%2Fenergy%2Fvictron_mppt_p2h_dynamic_de.yaml)
+
+Passt die Leistung des Heizstabs dynamisch dem PV-Überschuss an (50 W-Schritte, max. 3500 W).
+Schaltet bei Erreichen der Zieltemperatur ab. Freigabe über Victron MPPT LIMITED-Modus und/oder Batterie-SOC.
+
+| Parameter | Beschreibung |
+|-----------|-------------|
+| Leistungsvorgabe (number) | `number.target_power` der Integration |
+| PV-Überschuss-Sensor | Sensor mit Überschuss in Watt |
+| Temperatursensor | `sensor.temperature_1` oder `sensor.temperature_2` |
+| Zieltemperatur | Abschalttemperatur in °C (Standard: 60 °C) |
+| Minimaler Überschuss | Mindest-Überschuss für Aktivierung (Standard: 200 W) |
+| Batterie-SOC-Sensor | Ladestand-Sensor |
+| MPPT-Betriebsmodus | Victron MPPT Sensor(en) |
+| Freigabemodus | LIMITED + SOC / Nur LIMITED / Nur SOC |

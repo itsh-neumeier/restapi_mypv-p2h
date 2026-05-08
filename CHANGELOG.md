@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.0.3] - 2026-05-08
+
+### Added
+- Blueprint `victron_mppt_p2h_dynamic_de.yaml`: dynamic power control based on PV surplus with temperature cutoff
+
 ## [1.0.2] - 2026-05-08
 
 ### Changed

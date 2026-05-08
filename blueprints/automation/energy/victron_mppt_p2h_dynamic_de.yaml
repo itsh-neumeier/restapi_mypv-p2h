@@ -1,0 +1,231 @@
+# version: 1.0.0
+blueprint:
+  name: myPV P2H – Dynamische PV-Überschuss-Steuerung (Victron MPPT)
+  description: >-
+    Steuert die Leistung des myPV P2H Heizstabs dynamisch anhand des verfügbaren
+    PV-Überschusses eines Victron MPPT RS450/200.
+
+    Die Leistung wird stufenweise (50 W-Schritte) dem aktuellen PV-Überschuss
+    angepasst. Bei Erreichen der Zieltemperatur wird der Heizstab abgeschaltet.
+
+    Freigabemodus: "LIMITED und SOC" erfordert beides, "Nur LIMITED" ignoriert
+    den SOC, "Nur SOC" ignoriert den MPPT-Modus.
+
+    Voraussetzung: myPV P2H Integration installiert und konfiguriert.
+  domain: automation
+  source_url: https://raw.githubusercontent.com/itsh-neumeier/restapi_mypv-p2h/master/blueprints/automation/energy/victron_mppt_p2h_dynamic_de.yaml
+  author: Timo Neumeier
+  input:
+    target_power_entity:
+      name: myPV P2H – Leistungsvorgabe (number)
+      description: "number-Entity der myPV P2H Integration (target_power, 0–3500 W)."
+      selector:
+        entity:
+          domain: number
+
+    pv_surplus_entity:
+      name: PV-Überschuss-Sensor
+      description: >-
+        Sensor mit dem aktuell verfügbaren PV-Überschuss in Watt.
+        Positive Werte = Überschuss / Einspeisung.
+      selector:
+        entity:
+          domain: sensor
+
+    temperature_entity:
+      name: Temperatursensor Heizstab
+      description: "Temperatursensor der myPV P2H Integration (z. B. Temperatur 1)."
+      selector:
+        entity:
+          domain: sensor
+
+    max_temperature:
+      name: Zieltemperatur (Abschalttemperatur)
+      description: Bei Erreichen dieser Temperatur wird die Leistung auf 0 W gesetzt.
+      default: 60
+      selector:
+        number:
+          min: 20
+          max: 90
+          step: 1
+          unit_of_measurement: "°C"
+          mode: box
+
+    min_surplus_power:
+      name: Minimaler Überschuss für Aktivierung
+      description: Unter diesem Schwellwert bleibt der Heizstab ausgeschaltet.
+      default: 200
+      selector:
+        number:
+          min: 0
+          max: 1000
+          step: 50
+          unit_of_measurement: "W"
+          mode: box
+
+    battery_soc_entity:
+      name: Batterie-Ladestand-Sensor
+      selector:
+        entity:
+          domain: sensor
+
+    mppt_mode_entities:
+      name: MPPT-Betriebsmodus-Sensoren
+      description: >-
+        Ein oder mehrere Victron MPPT-Betriebsmodus-Sensoren.
+        Wird im Modus "Nur SOC" ignoriert.
+      selector:
+        entity:
+          multiple: true
+          filter:
+            - domain: sensor
+
+    battery_soc_threshold:
+      name: Batterie-SOC-Schwellwert
+      description: "Wird im Modus 'Nur LIMITED' ignoriert."
+      default: 90
+      selector:
+        number:
+          min: 0
+          max: 100
+          step: 1
+          unit_of_measurement: "%"
+          mode: box
+
+    trigger_mode:
+      name: Freigabemodus
+      description: Welche Bedingungen müssen für die Freigabe erfüllt sein?
+      default: both
+      selector:
+        select:
+          mode: dropdown
+          options:
+            - label: LIMITED und SOC (Standard)
+              value: both
+            - label: Nur LIMITED
+              value: limited_only
+            - label: Nur SOC
+              value: soc_only
+
+    limited_for:
+      name: MPPT muss LIMITED bleiben für
+      description: "Wird im Modus 'Nur SOC' ignoriert."
+      default:
+        hours: 0
+        minutes: 0
+        seconds: 10
+      selector:
+        duration: {}
+
+    lost_surplus_for:
+      name: Bedingung muss weggefallen sein für
+      default:
+        hours: 0
+        minutes: 0
+        seconds: 30
+      selector:
+        duration: {}
+
+    check_interval:
+      name: Zyklisches Prüfintervall
+      description: Wie oft wird die Leistung neu berechnet und gesetzt?
+      default: "/30"
+      selector:
+        select:
+          mode: dropdown
+          options:
+            - label: Alle 5 Sekunden
+              value: "/5"
+            - label: Alle 10 Sekunden
+              value: "/10"
+            - label: Alle 15 Sekunden
+              value: "/15"
+            - label: Alle 30 Sekunden (Standard)
+              value: "/30"
+            - label: Alle 60 Sekunden
+              value: "/60"
+
+mode: single
+
+trigger_variables:
+  battery_soc_entity: !input battery_soc_entity
+  mppt_mode_entities: !input mppt_mode_entities
+  soc_threshold: !input battery_soc_threshold
+  trigger_mode: !input trigger_mode
+
+triggers:
+  - id: mppt_limited
+    trigger: state
+    entity_id: !input mppt_mode_entities
+    to: "LIMITED"
+    for: !input limited_for
+
+  - id: soc_above
+    trigger: numeric_state
+    entity_id: !input battery_soc_entity
+    above: !input battery_soc_threshold
+
+  - id: temp_reached
+    trigger: numeric_state
+    entity_id: !input temperature_entity
+    above: !input max_temperature
+
+  - id: surplus_lost
+    trigger: template
+    value_template: >-
+      {{
+        (trigger_mode in ['both', 'soc_only'] and
+          states(battery_soc_entity) | float(0) <= soc_threshold | float(0)
+        ) or
+        (trigger_mode in ['both', 'limited_only'] and
+          expand(mppt_mode_entities)
+            | selectattr('state', 'eq', 'LIMITED')
+            | list
+            | count == 0
+        )
+      }}
+    for: !input lost_surplus_for
+
+  - id: periodic_check
+    trigger: time_pattern
+    seconds: !input check_interval
+
+conditions: []
+
+actions:
+  # Resolve !input values to local variables for use in templates
+  - variables:
+      pv_surplus_entity: !input pv_surplus_entity
+      temperature_entity: !input temperature_entity
+      max_temperature: !input max_temperature
+      min_surplus_power: !input min_surplus_power
+      battery_soc_entity: !input battery_soc_entity
+      battery_soc_threshold: !input battery_soc_threshold
+      trigger_mode: !input trigger_mode
+      mppt_mode_entities: !input mppt_mode_entities
+
+  # Calculate target power based on surplus, temperature and release conditions
+  - variables:
+      power_w: >-
+        {% set surplus = [states(pv_surplus_entity) | float(0), 0] | max %}
+        {% set temp = states(temperature_entity) | float(999) %}
+        {% set temp_ok = temp < max_temperature | float(90) %}
+        {% set soc_ok = trigger_mode == 'limited_only' or
+          states(battery_soc_entity) | float(0) > battery_soc_threshold | float(0) %}
+        {% set limited_ok = trigger_mode == 'soc_only' or
+          expand(mppt_mode_entities)
+            | selectattr('state', 'eq', 'LIMITED')
+            | list | count > 0 %}
+        {% if not temp_ok or not soc_ok or not limited_ok %}
+          0
+        {% elif surplus < min_surplus_power | float(0) %}
+          0
+        {% else %}
+          {{ [((surplus | int) // 50) * 50, 3500] | min }}
+        {% endif %}
+
+  - service: number.set_value
+    target:
+      entity_id: !input target_power_entity
+    data:
+      value: "{{ power_w | int }}"
