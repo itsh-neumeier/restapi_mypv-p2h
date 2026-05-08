@@ -1,0 +1,44 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "myPV ELWA2 verbinden",
+        "data": {
+          "host": "Host (IP-Adresse)",
+          "scan_interval": "Abfrageintervall (Sekunden)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Verbindung zum Gerät nicht möglich"
+    },
+    "abort": {
+      "already_configured": "Gerät bereits konfiguriert"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "myPV ELWA2 Optionen",
+        "data": {
+          "scan_interval": "Abfrageintervall (Sekunden)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "power_setpoint": { "name": "Leistungsvorgabe (aktuell)" },
+      "temperature_1":  { "name": "Temperatur 1" },
+      "temperature_2":  { "name": "Temperatur 2" },
+      "energy_today":   { "name": "Tagesenergie" }
+    },
+    "binary_sensor": {
+      "boost_active": { "name": "Boost aktiv" },
+      "error":        { "name": "Fehler" }
+    },
+    "number": {
+      "target_power": { "name": "Leistungsvorgabe" }
+    }
+  }
+}
