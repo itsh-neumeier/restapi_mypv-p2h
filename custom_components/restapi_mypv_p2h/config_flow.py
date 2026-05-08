@@ -33,7 +33,7 @@ class MypvP2hConfigFlow(ConfigFlow, domain=DOMAIN):
 
             if await self._test_connection(host):
                 return self.async_create_entry(
-                    title=f"myPV P2H ({host})",
+                    title="myPV P2H",
                     data=user_input,
                 )
             errors["base"] = "cannot_connect"

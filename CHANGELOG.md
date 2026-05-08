@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.0.7] - 2026-05-08
+
+### Fixed
+- Integration card title is now "myPV P2H" (was "myPV P2H (host)")
+
 ## [1.0.6] - 2026-05-08
 
 ### Changed
