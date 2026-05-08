@@ -1,20 +1,18 @@
-# version: 2.0.0
+# version: 2.1.0
 blueprint:
   name: myPV P2H – Dynamische Überschusssteuerung mit Anti-Limited (Victron)
   description: >-
     Steuert den myPV P2H Heizstab dynamisch anhand des berechneten PV-Überschusses
-    (Solarleistung minus Hausverbrauch). Aktivierung nur wenn der Batterie-SOC über
-    dem Schwellwert liegt.
+    (Summe aller Solarleistungs-Sensoren minus Summe aller Hausverbrauchs-Sensoren).
+    Aktivierung nur wenn der Batterie-SOC über dem Schwellwert liegt.
 
     **Anti-Limited-Regelung:** Geht ein Victron MPPT in den 'Limited'-Modus
     (Spannung-/Strombegrenzt), wird die Heizstab-Leistung schrittweise erhöht,
-    bis der MPPT wieder aktiv trackt oder 3500 W erreicht sind. So wird
-    überschüssige Solarenergie thermisch abgenommen, bevor der MPPT drosselt.
+    bis der MPPT wieder aktiv trackt oder 3500 W erreicht sind.
 
-    **Freigabebedingungen (kombinierbar):**
-    - SOC über Schwellwert
-    - Mindest-Überschuss vorhanden
-    - Zieltemperatur noch nicht erreicht
+    **Hinweis:** Kein Mindest-Überschuss-Schwellwert — die Victron MPPT 450/200
+    regeln ihre Produktion bereits selbst herunter, sodass ein fester Schwellwert
+    zu Oszillationen führt. Der SOC-Schwellwert ist das primäre Freigabe-Gate.
 
     Voraussetzung: myPV P2H Integration installiert und konfiguriert,
     Victron Integration mit MPPT-Betriebsmodus-Sensor aktiv.
@@ -31,23 +29,27 @@ blueprint:
         entity:
           domain: number
 
-    solar_power_sensor:
-      name: Solarleistung-Sensor
+    solar_power_sensors:
+      name: Solarleistung-Sensoren
       description: >-
-        Sensor mit der aktuellen Gesamt-PV-Leistung in Watt (positiv = Erzeugung).
-        Beispiel: Victron MPPT PV-Leistung oder Wechselrichter-Ausgangsleistung.
+        Ein oder mehrere Sensoren mit der aktuellen PV-Leistung in Watt
+        (positiv = Erzeugung). Mehrere Sensoren werden summiert.
+        Beispiel: PV-Leistung MPPT 1 + MPPT 2.
       selector:
         entity:
+          multiple: true
           domain: sensor
           device_class: power
 
-    house_consumption_sensor:
-      name: Hausverbrauch-Sensor
+    house_consumption_sensors:
+      name: Hausverbrauch-Sensoren
       description: >-
-        Sensor mit dem aktuellen Hausverbrauch in Watt (positiv = Verbrauch,
-        ohne Heizstab). Beispiel: Victron System-Verbrauch.
+        Ein oder mehrere Sensoren mit dem aktuellen Hausverbrauch in Watt
+        (positiv = Verbrauch, ohne Heizstab). Mehrere Sensoren werden summiert.
+        Beispiel: L1 + L2 + L3 bei 3-phasiger Messung.
       selector:
         entity:
+          multiple: true
           domain: sensor
           device_class: power
 
@@ -55,9 +57,8 @@ blueprint:
       name: MPPT-Betriebsmodus-Sensoren
       description: >-
         Ein oder mehrere Victron MPPT-Betriebsmodus-Sensoren
-        (Tracker Operation Mode). Wird für die Anti-Limited-Regelung ausgewertet.
-        Erkannt werden Zustände die "limit" oder "begrenzt" enthalten (Gross-/
-        Kleinschreibung egal).
+        (Tracker Operation Mode). Erkannt werden Zustände die "limit" oder
+        "begrenzt" enthalten (Gross-/Kleinschreibung egal).
       selector:
         entity:
           multiple: true
@@ -103,20 +104,6 @@ blueprint:
           max: 90
           step: 1
           unit_of_measurement: "°C"
-          mode: box
-
-    min_surplus_power:
-      name: Mindest-Überschuss für Aktivierung
-      description: >-
-        Unter diesem Schwellwert bleibt der Heizstab ausgeschaltet
-        (außer bei aktiver Anti-Limited-Regelung).
-      default: 200
-      selector:
-        number:
-          min: 0
-          max: 1000
-          step: 50
-          unit_of_measurement: "W"
           mode: box
 
     anti_limited_step:
@@ -187,19 +174,28 @@ conditions: []
 actions:
   - variables:
       target_power_entity: !input target_power_entity
-      solar_power_sensor: !input solar_power_sensor
-      house_consumption_sensor: !input house_consumption_sensor
+      solar_power_sensors: !input solar_power_sensors
+      house_consumption_sensors: !input house_consumption_sensors
       mppt_mode_entities: !input mppt_mode_entities
       battery_soc_sensor: !input battery_soc_sensor
       battery_soc_threshold: !input battery_soc_threshold
       temperature_sensor: !input temperature_sensor
       max_temperature: !input max_temperature
-      min_surplus_power: !input min_surplus_power
       anti_limited_step: !input anti_limited_step
 
   - variables:
-      solar_w: "{{ [states(solar_power_sensor) | float(0), 0] | max }}"
-      consumption_w: "{{ [states(house_consumption_sensor) | float(0), 0] | max }}"
+      solar_w: >-
+        {% set ns = namespace(total=0) %}
+        {% for e in expand(solar_power_sensors) %}
+          {% set ns.total = ns.total + [e.state | float(0), 0] | max %}
+        {% endfor %}
+        {{ ns.total }}
+      consumption_w: >-
+        {% set ns = namespace(total=0) %}
+        {% for e in expand(house_consumption_sensors) %}
+          {% set ns.total = ns.total + [e.state | float(0), 0] | max %}
+        {% endfor %}
+        {{ ns.total }}
       surplus_w: "{{ [solar_w - consumption_w, 0] | max }}"
       temp: "{{ states(temperature_sensor) | float(999) }}"
       soc: "{{ states(battery_soc_sensor) | float(0) }}"
@@ -221,8 +217,8 @@ actions:
           0
         {% elif any_limited %}
           {{ [current_power + anti_limited_step | float(100), 3500] | min | int }}
-        {% elif surplus_w >= min_surplus_power | float(0) %}
-          {{ [(( surplus_w | int ) // 50) * 50, 3500] | min | int }}
+        {% elif surplus_w > 0 %}
+          {{ [((surplus_w | int) // 50) * 50, 3500] | min | int }}
         {% else %}
           0
         {% endif %}

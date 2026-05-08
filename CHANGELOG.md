@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.10] - 2026-05-08
+
+### Changed
+- Blueprint v2.1.0:
+  - `solar_power_sensors` und `house_consumption_sensors` beide multi-select (Summe mehrerer Sensoren, z. B. 3 Phasen-Sensoren für Verbrauch)
+  - `min_surplus_power` entfernt — Victron MPPT 450/200 regeln Produktion selbst herunter, fester Schwellwert verursacht Oszillation; SOC-Gate reicht
+  - Surplus-Bedingung jetzt `surplus_w > 0` statt >= Schwellwert
+
 ## [1.0.9] - 2026-05-08
 
 ### Changed
