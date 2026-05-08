@@ -1,7 +1,7 @@
 {
   "domain": "restapi_mypv_p2h",
   "name": "myPV P2H",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "homeassistant": "2024.1.0",
   "documentation": "https://github.com/itsh-neumeier/ha-mypv-elwa2",
   "issue_tracker": "https://github.com/itsh-neumeier/ha-mypv-elwa2/issues",
@@ -9,5 +9,6 @@
   "config_flow": true,
   "codeowners": ["@itsh-neumeier"],
   "integration_type": "device",
-  "iot_class": "local_polling"
+  "iot_class": "local_polling",
+  "icon": "mdi:water-boiler"
 }

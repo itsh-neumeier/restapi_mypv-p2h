@@ -29,7 +29,7 @@
   },
   "entity": {
     "sensor": {
-      "power_setpoint": { "name": "Power setpoint" },
+      "power_setpoint": { "name": "Power (actual)" },
       "surplus":        { "name": "PV surplus" },
       "temperature_1":  { "name": "Temperature 1" },
       "temperature_2":  { "name": "Temperature 2" },
@@ -40,7 +40,7 @@
       "error":        { "name": "Block active" }
     },
     "number": {
-      "target_power": { "name": "Target power" }
+      "target_power": { "name": "Target power (setpoint)" }
     }
   }
 }

@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.0.6] - 2026-05-08
+
+### Changed
+- `target_power` number entity shows only the HA-internal setpoint (`_target_power`), not the device-reported value — clear Soll/Ist separation
+- `power_setpoint` sensor renamed to "Leistung (Ist)" / "Power (actual)" — shows device-reported actual power
+- `target_power` renamed to "Leistungsvorgabe (Soll)" / "Target power (setpoint)"
+- Minimum scan interval reduced from 10 s to 3 s (≥ 2500 ms)
+
+### Added
+- `brands/logo.png` — official my-PV logo (HA 2026.3 custom brands support)
+- `brands/icon.svg` — official my-PV hot water / P2H icon (from my-pv.com)
+- `manifest.json`: `"icon": "mdi:water-boiler"` fallback (HA 2026.3)
+
 ## [1.0.5] - 2026-05-08
 
 ### Fixed

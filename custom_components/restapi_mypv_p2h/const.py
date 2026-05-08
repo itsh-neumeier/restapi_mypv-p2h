@@ -4,7 +4,7 @@ from __future__ import annotations
 DOMAIN = "restapi_mypv_p2h"
 
 DEFAULT_SCAN_INTERVAL = 30
-MIN_SCAN_INTERVAL = 10
+MIN_SCAN_INTERVAL = 3
 MAX_SCAN_INTERVAL = 300
 
 CONF_HOST = "host"

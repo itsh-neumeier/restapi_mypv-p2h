@@ -9,7 +9,7 @@ from homeassistant.const import UnitOfPower
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN, ELWA2_DATA_KEYS
+from .const import DOMAIN
 from .coordinator import MypvP2hCoordinator
 from .entity import MypvP2hEntity
 
@@ -41,8 +41,7 @@ class MypvP2hPowerNumber(MypvP2hEntity, NumberEntity):
 
     @property
     def native_value(self) -> float | None:
-        value = self.coordinator.data.get(ELWA2_DATA_KEYS["power"]) if self.coordinator.data else None
-        return value if value is not None else self.coordinator._target_power
+        return float(self.coordinator._target_power)
 
     async def async_set_native_value(self, value: float) -> None:
         await self.coordinator.async_set_power(int(value))

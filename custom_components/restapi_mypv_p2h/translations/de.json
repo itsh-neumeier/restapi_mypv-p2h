@@ -29,7 +29,7 @@
   },
   "entity": {
     "sensor": {
-      "power_setpoint": { "name": "Leistung (aktuell)" },
+      "power_setpoint": { "name": "Leistung (Ist)" },
       "surplus":        { "name": "PV-Überschuss" },
       "temperature_1":  { "name": "Temperatur 1" },
       "temperature_2":  { "name": "Temperatur 2" },
@@ -40,7 +40,7 @@
       "error":        { "name": "Blockiert" }
     },
     "number": {
-      "target_power": { "name": "Leistungsvorgabe" }
+      "target_power": { "name": "Leistungsvorgabe (Soll)" }
     }
   }
 }
