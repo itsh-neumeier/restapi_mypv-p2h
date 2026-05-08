@@ -13,7 +13,7 @@ from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN, ELWA2_DATA_KEYS, STATUS_ERROR
+from .const import DOMAIN, ELWA2_DATA_KEYS, STATUS_BLOCK
 from .coordinator import MypvP2hCoordinator
 from .entity import MypvP2hEntity
 
@@ -36,11 +36,11 @@ BINARY_SENSORS: tuple[MypvP2hBinarySensorDescription, ...] = (
     ),
     MypvP2hBinarySensorDescription(
         key="error",
-        data_key=ELWA2_DATA_KEYS["status"],
+        data_key=ELWA2_DATA_KEYS["block"],
         translation_key="error",
         device_class=BinarySensorDeviceClass.PROBLEM,
         entity_category=EntityCategory.DIAGNOSTIC,
-        on_value=STATUS_ERROR,
+        on_value=STATUS_BLOCK,
     ),
 )
 
@@ -57,7 +57,7 @@ async def async_setup_entry(
 
 
 class MypvP2hBinarySensor(MypvP2hEntity, BinarySensorEntity):
-    """ELWA2 binary sensor."""
+    """myPV P2H binary sensor."""
 
     entity_description: MypvP2hBinarySensorDescription
 

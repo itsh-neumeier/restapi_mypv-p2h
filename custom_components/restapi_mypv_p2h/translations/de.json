@@ -6,7 +6,8 @@
         "data": {
           "host": "Host (IP-Adresse)",
           "scan_interval": "Abfrageintervall (Sekunden)"
-        }
+        },
+        "description": "Stelle sicher, dass die Steuerungsart im Gerät-Webinterface auf HTTP gesetzt ist."
       }
     },
     "error": {
@@ -28,14 +29,15 @@
   },
   "entity": {
     "sensor": {
-      "power_setpoint": { "name": "Leistungsvorgabe (aktuell)" },
+      "power_setpoint": { "name": "Leistung (aktuell)" },
+      "surplus":        { "name": "PV-Überschuss" },
       "temperature_1":  { "name": "Temperatur 1" },
       "temperature_2":  { "name": "Temperatur 2" },
-      "energy_today":   { "name": "Tagesenergie" }
+      "control_state":  { "name": "Steuerstatus" }
     },
     "binary_sensor": {
       "boost_active": { "name": "Boost aktiv" },
-      "error":        { "name": "Fehler" }
+      "error":        { "name": "Blockiert" }
     },
     "number": {
       "target_power": { "name": "Leistungsvorgabe" }

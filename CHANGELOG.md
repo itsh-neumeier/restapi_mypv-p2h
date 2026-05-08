@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.0.5] - 2026-05-08
+
+### Fixed
+- `power_elwa2` correct API field name (was `power` — does not exist in device response)
+- `boostactive` correct field name (was `boost`)
+- `blockactive` correct field name for error/block state (was `status` — does not exist)
+- `surplus` marked optional (null when no myPV meters configured)
+- `temperature_2` marked optional (not all firmware versions expose it)
+
+### Added
+- `control_state` diagnostic sensor (device ctrlstate string, e.g. "No Control", "Heat")
+- Config flow description: HTTP control must be enabled in device web interface
+
+### Removed
+- `energy_today` sensor (field does not exist in device API)
+
 ## [1.0.4] - 2026-05-08
 
 ### Fixed

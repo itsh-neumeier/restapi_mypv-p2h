@@ -6,7 +6,8 @@
         "data": {
           "host": "Host (IP address)",
           "scan_interval": "Scan interval (seconds)"
-        }
+        },
+        "description": "Make sure the device control type is set to HTTP in the device web interface."
       }
     },
     "error": {
@@ -29,13 +30,14 @@
   "entity": {
     "sensor": {
       "power_setpoint": { "name": "Power setpoint" },
+      "surplus":        { "name": "PV surplus" },
       "temperature_1":  { "name": "Temperature 1" },
       "temperature_2":  { "name": "Temperature 2" },
-      "energy_today":   { "name": "Energy today" }
+      "control_state":  { "name": "Control state" }
     },
     "binary_sensor": {
       "boost_active": { "name": "Boost active" },
-      "error":        { "name": "Error" }
+      "error":        { "name": "Block active" }
     },
     "number": {
       "target_power": { "name": "Target power" }

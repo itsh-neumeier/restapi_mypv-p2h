@@ -11,14 +11,13 @@ CONF_HOST = "host"
 CONF_SCAN_INTERVAL = "scan_interval"
 
 ELWA2_DATA_KEYS = {
-    "power": "power",
+    "power": "power_elwa2",
     "temp1": "temp1",
     "temp2": "temp2",
-    "status": "status",
-    "boost": "boost",
-    "energy": "energy",
+    "boost": "boostactive",
+    "surplus": "surplus",
+    "block": "blockactive",
+    "ctrlstate": "ctrlstate",
 }
 
-STATUS_OFF = 0
-STATUS_RUNNING = 1
-STATUS_ERROR = 2
+STATUS_BLOCK = 1

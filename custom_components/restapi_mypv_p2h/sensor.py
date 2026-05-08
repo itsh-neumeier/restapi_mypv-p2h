@@ -10,7 +10,7 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import EntityCategory, UnitOfEnergy, UnitOfPower, UnitOfTemperature
+from homeassistant.const import EntityCategory, UnitOfPower, UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -25,6 +25,7 @@ class MypvP2hSensorDescription(SensorEntityDescription):
 
     data_key: str
     scale: float = 1.0
+    optional: bool = False
 
 
 SENSORS: tuple[MypvP2hSensorDescription, ...] = (
@@ -36,6 +37,15 @@ SENSORS: tuple[MypvP2hSensorDescription, ...] = (
         device_class=SensorDeviceClass.POWER,
         state_class=SensorStateClass.MEASUREMENT,
         entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    MypvP2hSensorDescription(
+        key="surplus",
+        data_key=ELWA2_DATA_KEYS["surplus"],
+        translation_key="surplus",
+        native_unit_of_measurement=UnitOfPower.WATT,
+        device_class=SensorDeviceClass.POWER,
+        state_class=SensorStateClass.MEASUREMENT,
+        optional=True,
     ),
     MypvP2hSensorDescription(
         key="temperature_1",
@@ -54,14 +64,14 @@ SENSORS: tuple[MypvP2hSensorDescription, ...] = (
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
         scale=0.1,
+        optional=True,
     ),
     MypvP2hSensorDescription(
-        key="energy_today",
-        data_key=ELWA2_DATA_KEYS["energy"],
-        translation_key="energy_today",
-        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
-        device_class=SensorDeviceClass.ENERGY,
-        state_class=SensorStateClass.TOTAL,
+        key="control_state",
+        data_key=ELWA2_DATA_KEYS["ctrlstate"],
+        translation_key="control_state",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        optional=True,
     ),
 )
 
@@ -78,7 +88,7 @@ async def async_setup_entry(
 
 
 class MypvP2hSensor(MypvP2hEntity, SensorEntity):
-    """ELWA2 sensor."""
+    """myPV P2H sensor."""
 
     entity_description: MypvP2hSensorDescription
 
@@ -93,7 +103,7 @@ class MypvP2hSensor(MypvP2hEntity, SensorEntity):
         self._attr_unique_id = f"{entry_id}_{description.key}"
 
     @property
-    def native_value(self) -> float | int | None:
+    def native_value(self) -> float | int | str | None:
         value = self.coordinator.data.get(self.entity_description.data_key)
         if value is None:
             return None
@@ -105,6 +115,6 @@ class MypvP2hSensor(MypvP2hEntity, SensorEntity):
     def available(self) -> bool:
         if not super().available:
             return False
-        if self.entity_description.key == "temperature_2":
+        if self.entity_description.optional:
             return self.coordinator.data.get(self.entity_description.data_key) is not None
         return True
