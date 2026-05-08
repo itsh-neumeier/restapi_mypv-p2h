@@ -1,4 +1,4 @@
-# version: 2.1.0
+# version: 2.1.1
 blueprint:
   name: myPV P2H – Dynamische Überschusssteuerung mit Anti-Limited (Victron)
   description: >-
@@ -57,8 +57,8 @@ blueprint:
       name: MPPT-Betriebsmodus-Sensoren
       description: >-
         Ein oder mehrere Victron MPPT-Betriebsmodus-Sensoren
-        (Tracker Operation Mode). Erkannt werden Zustände die "limit" oder
-        "begrenzt" enthalten (Gross-/Kleinschreibung egal).
+        (Tracker Operation Mode). Mögliche Zustände: OFF / ACTIVE / LIMITED.
+        Anti-Limited greift bei Zustand LIMITED.
       selector:
         entity:
           multiple: true
@@ -156,7 +156,7 @@ triggers:
     value_template: >-
       {% set ns = namespace(found=false) %}
       {% for e in expand(mppt_mode_entities) %}
-        {% if 'limit' in e.state | lower or 'begrenzt' in e.state | lower %}
+        {% if e.state == 'LIMITED' %}
           {% set ns.found = true %}
         {% endif %}
       {% endfor %}
@@ -203,7 +203,7 @@ actions:
       any_limited: >-
         {% set ns = namespace(found=false) %}
         {% for e in expand(mppt_mode_entities) %}
-          {% if 'limit' in e.state | lower or 'begrenzt' in e.state | lower %}
+          {% if e.state == 'LIMITED' %}
             {% set ns.found = true %}
           {% endif %}
         {% endfor %}

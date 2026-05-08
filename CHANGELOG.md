@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.0.11] - 2026-05-08
+
+### Fixed
+- Blueprint v2.1.1: MPPT-Zustandserkennung exakt `== 'LIMITED'` (Werte: OFF / ACTIVE / LIMITED); Description korrigiert
+
 ## [1.0.10] - 2026-05-08
 
 ### Changed
