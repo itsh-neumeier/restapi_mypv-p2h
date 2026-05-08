@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.9] - 2026-05-08
+
+### Changed
+- Blueprint `victron_mppt_p2h_dynamic_de.yaml` komplett überarbeitet (v2.0.0):
+  - Separate Eingaben für Solarleistung und Hausverbrauch (statt vorberechnetem Überschuss-Sensor)
+  - Anti-Limited-Regelung: schrittweise Leistungserhöhung wenn MPPT Limited → hält MPPT aus dem Drosselungsmodus
+  - MPPT-Zustandserkennung case-insensitiv ("limit" / "begrenzt"), kompatibel mit allen Victron HA-Integrationen
+  - Neuer Input `anti_limited_step` (Schrittweite beim Hochregeln, Standard 100 W)
+  - Trigger reagiert sofort auf MPPT-Limited-Übergang (for: 5 s)
+
 ## [1.0.8] - 2026-05-08
 
 ### Fixed
