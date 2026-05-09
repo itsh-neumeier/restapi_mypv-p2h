@@ -30,12 +30,9 @@
   "entity": {
     "sensor": {
       "power_setpoint": { "name": "Power (actual)" },
-      "surplus":        { "name": "PV surplus" },
       "temperature_1":  { "name": "Temperature 1" },
       "temperature_2":  { "name": "Temperature 2" },
       "control_state":  { "name": "Control state" },
-      "power_solar":    { "name": "PV power" },
-      "power_grid":     { "name": "Grid power" },
       "volt_mains":     { "name": "Mains voltage" },
       "freq":           { "name": "Mains frequency" },
       "temp_ps":        { "name": "Device temperature" },
@@ -62,10 +59,6 @@
         }
       },
       "cur_ip":         { "name": "Device IP" }
-    },
-    "binary_sensor": {
-      "boost_active": { "name": "Boost active" },
-      "error":        { "name": "Block active" }
     },
     "number": {
       "target_power": { "name": "Target power (setpoint)" }

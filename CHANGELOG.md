@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.15] - 2026-05-08
+
+### Removed
+- Sensors `power_solar`, `power_grid`, `surplus` — device does not provide independent PV/grid measurement; values duplicated heater power or were unavailable
+- Binary sensors `boost_active` and `error` (block state) removed
+
+### Changed
+- `power_setpoint` ("Leistung (Ist)") moved from Diagnose to Sensoren section (removed DIAGNOSTIC entity category)
+
 ## [1.0.14] - 2026-05-08
 
 ### Changed
