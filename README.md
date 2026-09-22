@@ -74,8 +74,9 @@ angezeigt, wenn Gerät/Firmware den jeweiligen Datenpunkt tatsächlich liefert.
 | `cur_ip`         | sensor | —       | Diagnose  | Geräte-IP-Adresse (optional)                   |
 
 „Optional" bedeutet: Der Sensor liefert `unbekannt`, solange die Firmware diesen Datenpunkt
-nicht bereitstellt. Unbekannte ENUM-Codes (`upd_state`, `warnings`) werden als Rohwert angezeigt,
-anstatt die Integration abstürzen zu lassen.
+nicht bereitstellt. Meldet das Gerät bei `upd_state`/`warnings` einen noch nicht bekannten
+Code (z. B. durch neue Firmware), zeigt der Sensor den Zustand `unknown` statt abzustürzen;
+der tatsächliche Rohcode bleibt über das Entity-Attribut `raw_value` sichtbar.
 
 ## Update-/Polling-Verhalten
 
