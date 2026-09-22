@@ -60,7 +60,8 @@
           "unknown":          "Unbekannt (neuer Firmware-Code)"
         }
       },
-      "cur_ip":         { "name": "Geräte-IP" }
+      "cur_ip":         { "name": "Geräte-IP" },
+      "energy_consumption": { "name": "Energieverbrauch" }
     },
     "number": {
       "target_power": { "name": "Leistungsvorgabe (Soll)" }

@@ -1,14 +1,12 @@
 {
   "domain": "restapi_mypv_p2h",
   "name": "myPV P2H",
-  "version": "1.0.15",
-  "homeassistant": "2024.1.0",
-  "documentation": "https://github.com/itsh-neumeier/restapi_mypv-p2h",
-  "issue_tracker": "https://github.com/itsh-neumeier/restapi_mypv-p2h/issues",
-  "requirements": [],
-  "config_flow": true,
   "codeowners": ["@itsh-neumeier"],
+  "config_flow": true,
+  "documentation": "https://github.com/itsh-neumeier/restapi_mypv-p2h",
   "integration_type": "device",
   "iot_class": "local_polling",
-  "icon": "mdi:water-boiler"
+  "issue_tracker": "https://github.com/itsh-neumeier/restapi_mypv-p2h/issues",
+  "requirements": [],
+  "version": "1.0.15"
 }

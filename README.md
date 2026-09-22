@@ -24,6 +24,8 @@ und Steuerbereich abweichen können.
 - Automatischer Keepalive: Solange die Zielleistung > 0 W ist, wird der Sollwert alle 5 s
   erneut an das Gerät gesendet, damit es die Vorgabe nicht wegen Timeout verwirft
 - Temperatur-, Netz- und Diagnosesensoren (siehe Entity-Tabelle)
+- Energieverbrauch als `sensor.energy_consumption` (kWh, `total_increasing`) für das
+  Home-Assistant-Energiedashboard — aus der gemessenen Ist-Leistung berechnet
 - Konfigurierbares Abfrageintervall (3–300 s, Standard 30 s), nachträglich über Optionen änderbar
 - Kein Cloud-Zwang, vollständig lokal (`local_polling`)
 
@@ -63,6 +65,7 @@ angezeigt, wenn Gerät/Firmware den jeweiligen Datenpunkt tatsächlich liefert.
 |------------------|--------|---------|-----------|------------------------------------------------|
 | `target_power`   | number | W       | —         | Leistungsvorgabe (Soll), 0–3500 W, 50-W-Schritte |
 | `power_setpoint` | sensor | W       | —         | Leistung (Ist)                                |
+| `energy_consumption` | sensor | kWh | —      | Energieverbrauch (kumuliert, für Energiedashboard) |
 | `temperature_1`  | sensor | °C      | —         | Temperatur Sensor 1                           |
 | `temperature_2`  | sensor | °C      | —         | Temperatur Sensor 2 (optional)                 |
 | `control_state`  | sensor | —       | Diagnose  | Steuerstatus (optional)                        |
@@ -77,6 +80,19 @@ angezeigt, wenn Gerät/Firmware den jeweiligen Datenpunkt tatsächlich liefert.
 nicht bereitstellt. Meldet das Gerät bei `upd_state`/`warnings` einen noch nicht bekannten
 Code (z. B. durch neue Firmware), zeigt der Sensor den Zustand `unknown` statt abzustürzen;
 der tatsächliche Rohcode bleibt über das Entity-Attribut `raw_value` sichtbar.
+
+`energy_consumption` liefert das Gerät **nicht** direkt (die API kennt keinen Energiezähler,
+nur die Momentanleistung `power_elwa2`). Die Integration berechnet den kWh-Wert daher selbst
+durch Aufsummieren der gemessenen Ist-Leistung über die tatsächlich vergangene Zeit zwischen
+zwei Abfragen. Genauigkeit hängt entsprechend vom Abfrageintervall ab (kürzeres Intervall =
+genauer). Der Zählerstand übersteht HA-Neustarts; während eines Geräteausfalls wird nicht
+weitergezählt, der Sensor zeigt dann „nicht verfügbar" statt eines geschätzten Wertes.
+
+## Energiedashboard einbinden
+
+`sensor.energy_consumption` kann direkt unter **Einstellungen → Dashboards → Energie →
+Geräte hinzufügen** ausgewählt werden (erfüllt die dortigen Anforderungen: `device_class:
+energy`, `state_class: total_increasing`, Einheit kWh). Kein zusätzlicher Helper nötig.
 
 ## Update-/Polling-Verhalten
 
