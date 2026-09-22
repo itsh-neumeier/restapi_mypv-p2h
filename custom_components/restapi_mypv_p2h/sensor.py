@@ -249,6 +249,14 @@ class MypvP2hEnergySensor(MypvP2hEntity, RestoreSensor):
         last_data = await self.async_get_last_sensor_data()
         if last_data is not None and last_data.native_value is not None:
             self._energy_kwh = float(last_data.native_value)
+        # Establish the integration baseline from the data already fetched by
+        # the coordinator's first refresh; otherwise nothing is integrated
+        # until a second coordinator update arrives after this entity exists.
+        if (
+            self.coordinator.last_update_success
+            and self.coordinator.data.get(ELWA2_DATA_KEYS["power"]) is not None
+        ):
+            self._last_update = dt_util.utcnow()
 
     def _handle_coordinator_update(self) -> None:
         now = dt_util.utcnow()

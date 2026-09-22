@@ -161,11 +161,19 @@ async def test_energy_consumption_outage_gap_is_not_integrated(
 
     aioclient_mock.clear_requests()
     aioclient_mock.get(DATA_URL, json={"power_elwa2": 1000, "temp1": 0})
+    freezer.tick(timedelta(hours=5))
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+
+    # Recovery poll only re-establishes the baseline; the 5 h gap itself is
+    # not integrated, so the total is unchanged immediately after recovery.
+    assert hass.states.get(entity_id).state == "1.0"
+
     freezer.tick(timedelta(hours=1))
     await coordinator.async_refresh()
     await hass.async_block_till_done()
 
-    # +1 kWh for the last hour only; the 5 h outage gap must not be integrated.
+    # +1 kWh for this next hour, now that a post-recovery baseline exists.
     assert hass.states.get(entity_id).state == "2.0"
 
 
