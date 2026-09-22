@@ -1,0 +1,71 @@
+# Test dependencies for `pytest tests/`.
+#
+# Installed in two layers by .github/workflows/ci.yml (and documented here for
+# local use) because `pytest-homeassistant-custom-component`/`homeassistant`
+# pin exact old versions of a few packages (mock-open, paho-mqtt,
+# pytest-test-groups, and transitively PyRIC via the Bluetooth stack) that are
+# unrelated to this REST-polling integration and whose old sdists no longer
+# build against current setuptools. If a newer pytest-homeassistant-custom-component
+# release resolves cleanly on its own again, this can be simplified back to a
+# single `pip install pytest-homeassistant-custom-component`.
+#
+# Layer 1 - top-level packages, no dependency resolution:
+#   pip install --no-deps homeassistant pytest pytest-asyncio pytest-homeassistant-custom-component
+#
+# Layer 2 - the runtime dependencies actually needed to import homeassistant
+# core and run these tests, at compatible (not necessarily exact-pinned)
+# versions; deliberately excludes hass-nabucasa/home-assistant-bluetooth
+# (cloud/Bluetooth, not used by this integration, and the source of the
+# broken transitive PyRIC dependency):
+pluggy
+iniconfig
+packaging
+tzdata
+aiohttp
+aiohttp-cors
+aiohttp-fast-url-dispatcher
+aiohttp-zlib-ng
+astral
+async-interrupt
+attrs
+atomicwrites-homeassistant
+awesomeversion
+bcrypt
+certifi
+ciso8601
+httpx
+ifaddr
+Jinja2
+lru-dict
+PyJWT
+cryptography
+pyOpenSSL
+orjson
+python-slugify
+PyYAML
+requests
+typing-extensions
+ulid-transform
+urllib3
+voluptuous
+voluptuous-serialize
+yarl
+freezegun
+pytest-aiohttp==1.0.5
+pytest-cov==4.1.0
+pytest-freezer==0.4.8
+pytest-socket==0.7.0
+pytest-sugar==1.0.0
+pytest-timeout==2.2.0
+pytest-unordered==0.5.2
+pytest-xdist==3.3.1
+requests-mock
+respx
+tqdm
+coverage
+# These three MUST stay pinned exactly: pytest_homeassistant_custom_component's
+# autouse fixtures (e.g. enable_event_loop_debug) depend on pytest-asyncio's
+# old `event_loop` fixture, which newer pytest-asyncio removed.
+pytest==8.0.2
+pytest-asyncio==0.23.5
+syrupy==4.6.1
