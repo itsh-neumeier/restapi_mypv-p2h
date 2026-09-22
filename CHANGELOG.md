@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-09-22
+
 ### Fixed
 - **Hassfest-Validierung schlug fehl**: `manifest.json` verwendete die Keys `icon` und
   `homeassistant`, die das aktuelle Hassfest-Schema für Custom Integrations nicht mehr kennt.
