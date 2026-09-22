@@ -1,5 +1,36 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+- **Options Flow (Einstellungen → Konfigurieren) stürzte immer ab** (`AttributeError:
+  'MypvP2hOptionsFlow' object has no attribute 'config_entry'`). Das Scan-Interval war dadurch
+  nachträglich nicht änderbar. `config_entry` wird jetzt korrekt im Konstruktor übernommen.
+- **ENUM-Sensoren `warnings`/`upd_state` konnten beim Melden eines unbekannten/neuen
+  Status-/Firmware-Codes abstürzen** (`ValueError: ... provides state value '999', which is not
+  in the list of options`), da Home Assistant für ENUM-Sensoren nur deklarierte `options`-Werte
+  als Zustand zulässt. Unbekannte Codes liefern jetzt den Zustand `unknown` statt des Rohwerts;
+  der tatsächliche Rohcode bleibt zusätzlich über das Attribut `raw_value` einsehbar.
+- Leistungsvorgabe (`number.target_power`) schlug bei einem Netzwerkfehler bisher stillschweigend
+  fehl (nur Log-Eintrag, kein Fehler in der UI, `target_power` zeigte trotzdem den neuen Sollwert).
+  Ein Fehler beim Senden an `/control.html` wird jetzt als Fehler an Home Assistant zurückgemeldet;
+  der Keepalive versucht es weiterhin automatisch alle 5 s.
+- Zu breite `except Exception`-Blöcke in Coordinator und Config Flow durch gezielte
+  Netzwerk-/Timeout-/JSON-Fehlerbehandlung ersetzt, damit unerwartete Programmierfehler nicht
+  mehr verschluckt werden.
+- Veraltetes `FlowResult` aus `homeassistant.data_entry_flow` durch `ConfigFlowResult`
+  (`homeassistant.config_entries`, mit Fallback für ältere HA-Versionen) ersetzt.
+- `manifest.json`: `documentation`/`issue_tracker` verwiesen noch auf das alte Repository
+  `ha-mypv-elwa2`, jetzt korrigiert auf `restapi_mypv-p2h`.
+- README: Entity-Tabelle nannte nicht mehr existierende Entities (`energy_today`,
+  `boost_active`, `error`) und fehlende aktuelle Sensoren; Scan-Interval-Bereich korrigiert
+  (3–300 s statt 10–300 s); HACS-Installationslink korrigiert.
+
+### Added
+- Grundlegende `pytest`-Testsuite (Coordinator, Config Flow, Sensoren, Number) unter `tests/`.
+- `ruff`-Konfiguration (`pyproject.toml`) und GitHub-Actions-Workflows für Lint/Tests sowie
+  Hassfest-/HACS-Validierung.
+
 ## [1.0.15] - 2026-05-08
 
 ### Removed
