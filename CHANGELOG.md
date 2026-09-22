@@ -3,6 +3,11 @@
 ## [Unreleased]
 
 ### Fixed
+- **Hassfest-Validierung schlug fehl**: `manifest.json` verwendete die Keys `icon` und
+  `homeassistant`, die das aktuelle Hassfest-Schema für Custom Integrations nicht mehr kennt.
+  `icon` entfernt (Icon kommt bereits über `icon.png`/`icon@2x.png`); Mindest-HA-Version zieht
+  jetzt stattdessen `hacs.json` (`homeassistant`) heran, wie von HACS vorgesehen.
+- **HACS-Validierung schlug fehl** („no valid topics"): GitHub-Repository-Topics ergänzt.
 - **Options Flow (Einstellungen → Konfigurieren) stürzte immer ab** (`AttributeError:
   'MypvP2hOptionsFlow' object has no attribute 'config_entry'`). Das Scan-Interval war dadurch
   nachträglich nicht änderbar. `config_entry` wird jetzt korrekt im Konstruktor übernommen.
