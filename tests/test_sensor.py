@@ -1,9 +1,15 @@
 """Tests for myPV P2H sensors."""
 from __future__ import annotations
 
+from datetime import timedelta
+
 import aiohttp
+from homeassistant.core import State
 from homeassistant.helpers import entity_registry as er
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    mock_restore_cache_with_extra_data,
+)
 
 from custom_components.restapi_mypv_p2h.const import CONF_HOST, CONF_SCAN_INTERVAL, DOMAIN
 
@@ -107,3 +113,90 @@ async def test_sensor_unavailable_when_coordinator_update_fails(hass, aioclient_
     await hass.async_block_till_done()
 
     assert hass.states.get(entity_id).state == "unavailable"
+
+
+async def test_energy_consumption_starts_at_zero(hass, aioclient_mock):
+    """No prior reading yet, so the first poll must not integrate anything."""
+    entry = await _setup_entry(hass, aioclient_mock, {"power_elwa2": 2000, "temp1": 0})
+
+    assert hass.states.get(_entity_id(hass, entry, "energy_consumption")).state == "0.0"
+
+
+async def test_energy_consumption_integrates_power_over_elapsed_time(
+    hass, aioclient_mock, freezer
+):
+    """2000 W held for 1 h must add 2.0 kWh, derived from real elapsed time."""
+    freezer.move_to("2026-01-01 00:00:00+00:00")
+    entry = await _setup_entry(hass, aioclient_mock, {"power_elwa2": 2000, "temp1": 0})
+    entity_id = _entity_id(hass, entry, "energy_consumption")
+    coordinator = hass.data[DOMAIN][entry.entry_id]
+
+    freezer.tick(timedelta(hours=1))
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+
+    assert hass.states.get(entity_id).state == "2.0"
+
+
+async def test_energy_consumption_outage_gap_is_not_integrated(
+    hass, aioclient_mock, freezer
+):
+    """A long outage must not be counted once the device becomes reachable again."""
+    freezer.move_to("2026-01-01 00:00:00+00:00")
+    entry = await _setup_entry(hass, aioclient_mock, {"power_elwa2": 1000, "temp1": 0})
+    entity_id = _entity_id(hass, entry, "energy_consumption")
+    coordinator = hass.data[DOMAIN][entry.entry_id]
+
+    freezer.tick(timedelta(hours=1))
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+    assert hass.states.get(entity_id).state == "1.0"
+
+    aioclient_mock.clear_requests()
+    aioclient_mock.get(DATA_URL, exc=aiohttp.ClientConnectionError())
+    freezer.tick(timedelta(hours=5))
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+    assert hass.states.get(entity_id).state == "unavailable"
+
+    aioclient_mock.clear_requests()
+    aioclient_mock.get(DATA_URL, json={"power_elwa2": 1000, "temp1": 0})
+    freezer.tick(timedelta(hours=1))
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+
+    # +1 kWh for the last hour only; the 5 h outage gap must not be integrated.
+    assert hass.states.get(entity_id).state == "2.0"
+
+
+async def test_energy_consumption_restores_across_restart(hass, aioclient_mock):
+    """The running total must survive a Home Assistant / entry restart."""
+    entry_id = "restore_test_entry"
+    entity_registry = er.async_get(hass)
+    entity_registry.async_get_or_create(
+        "sensor",
+        DOMAIN,
+        f"{entry_id}_energy_consumption",
+        suggested_object_id="energy_consumption",
+    )
+    mock_restore_cache_with_extra_data(
+        hass,
+        [
+            (
+                State("sensor.energy_consumption", "5.0"),
+                {"native_value": 5.0, "native_unit_of_measurement": "kWh"},
+            )
+        ],
+    )
+    aioclient_mock.get(DATA_URL, json={"power_elwa2": 0, "temp1": 0})
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        entry_id=entry_id,
+        data={CONF_HOST: "1.2.3.4", CONF_SCAN_INTERVAL: 30},
+        unique_id="1.2.3.4",
+    )
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert hass.states.get("sensor.energy_consumption").state == "5.0"

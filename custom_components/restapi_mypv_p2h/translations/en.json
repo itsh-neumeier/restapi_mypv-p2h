@@ -60,7 +60,8 @@
           "unknown":          "Unknown (new firmware code)"
         }
       },
-      "cur_ip":         { "name": "Device IP" }
+      "cur_ip":         { "name": "Device IP" },
+      "energy_consumption": { "name": "Energy consumption" }
     },
     "number": {
       "target_power": { "name": "Target power (setpoint)" }

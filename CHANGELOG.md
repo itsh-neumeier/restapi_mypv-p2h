@@ -27,6 +27,10 @@
   (3–300 s statt 10–300 s); HACS-Installationslink korrigiert.
 
 ### Added
+- Neuer Sensor `energy_consumption` (kWh, `device_class: energy`, `state_class:
+  total_increasing`) für das Home-Assistant-Energiedashboard. Das Gerät liefert keinen
+  Energiezähler; der Wert wird aus der gemessenen Ist-Leistung (`power_elwa2`) über die
+  tatsächlich vergangene Zeit integriert und übersteht HA-Neustarts (`RestoreSensor`).
 - Grundlegende `pytest`-Testsuite (Coordinator, Config Flow, Sensoren, Number) unter `tests/`.
 - `ruff`-Konfiguration (`pyproject.toml`) und GitHub-Actions-Workflows für Lint/Tests sowie
   Hassfest-/HACS-Validierung.

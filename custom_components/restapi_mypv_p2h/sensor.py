@@ -2,9 +2,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Any
 
 from homeassistant.components.sensor import (
+    RestoreSensor,
     SensorDeviceClass,
     SensorEntity,
     SensorEntityDescription,
@@ -14,12 +16,14 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     EntityCategory,
     UnitOfElectricPotential,
+    UnitOfEnergy,
     UnitOfFrequency,
     UnitOfPower,
     UnitOfTemperature,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN, ELWA2_DATA_KEYS
 from .coordinator import MypvP2hCoordinator
@@ -161,9 +165,11 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     coordinator: MypvP2hCoordinator = hass.data[DOMAIN][entry.entry_id]
-    async_add_entities(
+    entities: list[SensorEntity] = [
         MypvP2hSensor(coordinator, entry.entry_id, desc) for desc in SENSORS
-    )
+    ]
+    entities.append(MypvP2hEnergySensor(coordinator, entry.entry_id))
+    async_add_entities(entities)
 
 
 class MypvP2hSensor(MypvP2hEntity, SensorEntity):
@@ -212,3 +218,60 @@ class MypvP2hSensor(MypvP2hEntity, SensorEntity):
         if self.entity_description.optional:
             return self.coordinator.data.get(self.entity_description.data_key) is not None
         return True
+
+
+class MypvP2hEnergySensor(MypvP2hEntity, RestoreSensor):
+    """Energy consumption, integrated from the measured power.
+
+    The device API exposes only instantaneous power (power_elwa2), no
+    cumulative energy counter (see CHANGELOG: the old `energy_today` sensor
+    was removed because that field does not exist). This sensor integrates
+    measured power over real elapsed time (left Riemann sum) into kWh, so it
+    can be used as an "individual device" source in the HA Energy Dashboard,
+    which only accepts device_class ENERGY / state_class TOTAL_INCREASING
+    sensors. The running total survives HA restarts via RestoreSensor.
+    """
+
+    _attr_translation_key = "energy_consumption"
+    _attr_device_class = SensorDeviceClass.ENERGY
+    _attr_state_class = SensorStateClass.TOTAL_INCREASING
+    _attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
+    _attr_suggested_display_precision = 2
+
+    def __init__(self, coordinator: MypvP2hCoordinator, entry_id: str) -> None:
+        super().__init__(coordinator, entry_id)
+        self._attr_unique_id = f"{entry_id}_energy_consumption"
+        self._energy_kwh: float = 0.0
+        self._last_update: datetime | None = None
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        last_data = await self.async_get_last_sensor_data()
+        if last_data is not None and last_data.native_value is not None:
+            self._energy_kwh = float(last_data.native_value)
+
+    def _handle_coordinator_update(self) -> None:
+        now = dt_util.utcnow()
+        power = (
+            self.coordinator.data.get(ELWA2_DATA_KEYS["power"])
+            if self.coordinator.last_update_success
+            else None
+        )
+        # No timestamp gap tracked across an outage: a missing/failed read
+        # resets `_last_update` to None so the next successful read doesn't
+        # integrate power across the unmeasured gap.
+        if power is not None and self._last_update is not None:
+            hours = (now - self._last_update).total_seconds() / 3600
+            self._energy_kwh += max(power, 0) * hours / 1000
+        self._last_update = now if power is not None else None
+        self.async_write_ha_state()
+
+    @property
+    def native_value(self) -> float:
+        return round(self._energy_kwh, 3)
+
+    @property
+    def available(self) -> bool:
+        if not super().available:
+            return False
+        return self.coordinator.data.get(ELWA2_DATA_KEYS["power"]) is not None
