@@ -43,7 +43,8 @@
           "available":    "Update verfügbar",
           "downloading":  "Wird heruntergeladen",
           "interrupted":  "Unterbrochen",
-          "ready":        "Bereit zur Installation"
+          "ready":        "Bereit zur Installation",
+          "unknown":      "Unbekannt (neuer Firmware-Code)"
         }
       },
       "warnings": {
@@ -55,7 +56,8 @@
           "temp_probe_fault": "Temperatursonde Leistungsstufe defekt",
           "hardware_fault":   "Hardwarefehler",
           "temp_sensor_fault":"Temperatursensor defekt (Heizstab)",
-          "mainboard_error":  "Mainboard-Fehler"
+          "mainboard_error":  "Mainboard-Fehler",
+          "unknown":          "Unbekannt (neuer Firmware-Code)"
         }
       },
       "cur_ip":         { "name": "Geräte-IP" }

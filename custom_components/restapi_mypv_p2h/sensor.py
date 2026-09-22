@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Any
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -23,6 +24,10 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .const import DOMAIN, ELWA2_DATA_KEYS
 from .coordinator import MypvP2hCoordinator
 from .entity import MypvP2hEntity
+
+# HA's ENUM sensor state must be one of `options`; any code not present in a
+# value_map below falls back to this instead of the raw code (see native_value).
+UNKNOWN_ENUM_VALUE = "unknown"
 
 UPD_STATE_MAP: dict[int, str] = {
     0: "no_update",
@@ -126,7 +131,7 @@ SENSORS: tuple[MypvP2hSensorDescription, ...] = (
         translation_key="upd_state",
         device_class=SensorDeviceClass.ENUM,
         entity_category=EntityCategory.DIAGNOSTIC,
-        options=list(UPD_STATE_MAP.values()),
+        options=[*UPD_STATE_MAP.values(), UNKNOWN_ENUM_VALUE],
         value_map=UPD_STATE_MAP,
         optional=True,
     ),
@@ -136,7 +141,7 @@ SENSORS: tuple[MypvP2hSensorDescription, ...] = (
         translation_key="warnings",
         device_class=SensorDeviceClass.ENUM,
         entity_category=EntityCategory.DIAGNOSTIC,
-        options=list(WARNINGS_MAP.values()),
+        options=[*WARNINGS_MAP.values(), UNKNOWN_ENUM_VALUE],
         value_map=WARNINGS_MAP,
         optional=True,
     ),
@@ -182,10 +187,23 @@ class MypvP2hSensor(MypvP2hEntity, SensorEntity):
         if value is None:
             return None
         if self.entity_description.value_map is not None:
-            return self.entity_description.value_map.get(int(value), str(value))
+            # `options` only lists known codes; an unmapped code must fall back
+            # to UNKNOWN_ENUM_VALUE (not the raw code) or HA's ENUM validation
+            # raises and the entity fails to add. The raw code is still
+            # available via the raw_value state attribute below.
+            return self.entity_description.value_map.get(int(value), UNKNOWN_ENUM_VALUE)
         if self.entity_description.scale != 1.0:
             return round(value * self.entity_description.scale, 1)
         return value
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        if self.entity_description.value_map is None:
+            return None
+        value = self.coordinator.data.get(self.entity_description.data_key)
+        if value is None:
+            return None
+        return {"raw_value": value}
 
     @property
     def available(self) -> bool:
