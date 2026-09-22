@@ -3,11 +3,16 @@ from __future__ import annotations
 
 import aiohttp
 import voluptuous as vol
-
 from homeassistant.config_entries import ConfigEntry, ConfigFlow, OptionsFlow
 from homeassistant.core import callback
-from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+
+try:
+    # Added to homeassistant.config_entries in a later core release than our
+    # declared minimum (manifest.json "homeassistant"); fall back for that.
+    from homeassistant.config_entries import ConfigFlowResult
+except ImportError:
+    from homeassistant.data_entry_flow import FlowResult as ConfigFlowResult
 
 from .const import (
     CONF_HOST,
@@ -24,7 +29,7 @@ class MypvP2hConfigFlow(ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
-    async def async_step_user(self, user_input: dict | None = None) -> FlowResult:
+    async def async_step_user(self, user_input: dict | None = None) -> ConfigFlowResult:
         errors: dict[str, str] = {}
         if user_input is not None:
             host = user_input[CONF_HOST]
@@ -64,19 +69,22 @@ class MypvP2hConfigFlow(ConfigFlow, domain=DOMAIN):
                     return False
                 await resp.json(content_type=None)
                 return True
-        except Exception:
+        except (aiohttp.ClientError, TimeoutError, ValueError):
             return False
 
     @staticmethod
     @callback
     def async_get_options_flow(config_entry: ConfigEntry) -> MypvP2hOptionsFlow:
-        return MypvP2hOptionsFlow()
+        return MypvP2hOptionsFlow(config_entry)
 
 
 class MypvP2hOptionsFlow(OptionsFlow):
     """Options flow for myPV P2H."""
 
-    async def async_step_init(self, user_input: dict | None = None) -> FlowResult:
+    def __init__(self, config_entry: ConfigEntry) -> None:
+        self.config_entry = config_entry
+
+    async def async_step_init(self, user_input: dict | None = None) -> ConfigFlowResult:
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
 

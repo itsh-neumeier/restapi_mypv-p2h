@@ -6,8 +6,8 @@ from datetime import timedelta
 from typing import Any
 
 import aiohttp
-
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
@@ -42,14 +42,21 @@ class MypvP2hCoordinator(DataUpdateCoordinator[dict]):
             ) as resp:
                 resp.raise_for_status()
                 return await resp.json(content_type=None)
-        except Exception as err:
+        except (aiohttp.ClientError, TimeoutError, ValueError) as err:
             raise UpdateFailed(f"Error communicating with myPV P2H: {err}") from err
 
     async def async_set_power(self, power: int) -> None:
-        """Send power setpoint and manage keepalive."""
+        """Send power setpoint and manage keepalive.
+
+        The keepalive is (re)armed even if this send fails, so a target power
+        set while the device is briefly unreachable is still retried once
+        communication returns.
+        """
         self._target_power = power
-        await self._send_power(power)
-        self._update_keepalive()
+        try:
+            await self._send_power(power)
+        finally:
+            self._update_keepalive()
 
     async def _send_power(self, power: int) -> None:
         url = f"http://{self.host}/control.html?power={power}"
@@ -58,8 +65,9 @@ class MypvP2hCoordinator(DataUpdateCoordinator[dict]):
                 url, timeout=aiohttp.ClientTimeout(total=10)
             ) as resp:
                 resp.raise_for_status()
-        except Exception as err:
-            _LOGGER.error("Failed to set power: %s", err)
+        except (aiohttp.ClientError, TimeoutError) as err:
+            _LOGGER.error("Failed to set power to %sW: %s", power, err)
+            raise HomeAssistantError(f"Failed to set power on myPV P2H: {err}") from err
 
     def _update_keepalive(self) -> None:
         """Start keepalive when power > 0, cancel when power == 0."""
@@ -73,7 +81,11 @@ class MypvP2hCoordinator(DataUpdateCoordinator[dict]):
 
     async def _async_keepalive(self, _now: Any = None) -> None:
         if self._target_power > 0:
-            await self._send_power(self._target_power)
+            try:
+                await self._send_power(self._target_power)
+            except HomeAssistantError:
+                # Already logged in _send_power; keep retrying on the next tick.
+                pass
 
     def cancel_keepalive(self) -> None:
         """Cancel keepalive on integration unload."""
