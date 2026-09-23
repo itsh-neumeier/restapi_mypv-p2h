@@ -158,7 +158,7 @@ Nachregelung, nicht mehr das primäre Freigabe-Signal.
 | Batterie-SOC-Sensor | Ladestand-Sensor |
 | Akku-Kapazität-Sensor (Ah) | Ist-Stand in Ah beim aktuellen SOC, z. B. Victron „battery capacity" (**nicht** Nennkapazität — wird über SOC hochgerechnet) |
 | Akku-Nennspannung | in V (z. B. 48/51,2), Ah→kWh-Umrechnung für die Headroom-Berechnung — keine Live-Spannung |
-| PV-Prognose – Rest heute | Sensor der Victron-Remote-Monitoring-Integration (kWh), z. B. „Geschätzte Energieerzeugung – Aktuell" |
+| PV-Prognose – Rest heute | Sensor der Victron-Remote-Monitoring-Integration (kWh), z. B. „Geschätzte Energieerzeugung – Heute verbleibend" |
 | Ziel-SOC bis Tagesende | Standard 100 % |
 | Sicherheitsmarge | Puffer in kWh, Standard 1,0 kWh |
 | Absolute SOC-Untergrenze | Tiefentladeschutz unabhängig vom Headroom, Standard 20 % |
