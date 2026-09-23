@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Added
+- Neues Blueprint `victron_mppt_p2h_forecast_de.yaml`: prognosebasierte Freigabe (Victron-VRM-
+  Tagesprognose + SOC als primäre Basis, MPPT-LIMITED nur noch sekundäre Nachregelung) statt
+  festem SOC-Schwellwert. Heizstab bekommt weiterhin nie mehr als den real gemessenen
+  PV-Überschuss zugewiesen; die Freigabe hängt vom berechneten Headroom (Resttagesprognose
+  minus Energiebedarf bis Ziel-SOC minus Sicherheitsmarge) ab. Ergänzt, ersetzt nicht das
+  bestehende SOC-Schwellwert-Blueprint.
+
 ## [1.1.0] - 2026-09-22
 
 ### Fixed

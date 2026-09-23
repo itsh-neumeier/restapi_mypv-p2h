@@ -1,0 +1,329 @@
+# version: 1.0.0
+blueprint:
+  name: myPV P2H – Prognosebasierte Überschusssteuerung (Victron VRM)
+  description: >-
+    Steuert den myPV P2H Heizstab wie das "Anti-Limited"-Blueprint anhand des
+    realen PV-Überschusses (Summe Solarleistungs-Sensoren minus Summe
+    Hausverbrauchs-Sensoren) – der Heizstab bekommt **nie** mehr als den
+    tatsächlich gemessenen Überschuss zugewiesen.
+
+    **Unterschied zur SOC-Schwellwert-Variante:** Statt eines festen
+    Mindest-SOC entscheidet pro Zyklus ein Vorhersage-Puffer ("Headroom"),
+    ob der Heizstab freigegeben wird:
+
+    `Energiebedarf bis Ziel-SOC = (Ziel-SOC − aktueller SOC) × Akkukapazität`
+
+    `Headroom = Restprognose (heute) − Energiebedarf − Sicherheitsmarge`
+
+    Ist der Headroom positiv, reicht die für heute prognostizierte
+    Resterzeugung rechnerisch aus, um den Akku trotz Heizstab-Nutzung noch
+    bis zum Ziel-SOC (Standard 100 %) zu laden – der Heizstab nutzt dann
+    auch früh am Tag bereits kurze Erzeugungsspitzen. Ist der Headroom
+    negativ oder unbekannt (Sensor "unavailable"/"unknown"), bleibt der
+    Heizstab aus, damit der Akku Vorrang zum Vollladen behält – bewusst
+    fail-safe, keine Heizung auf Verdacht.
+
+    Die Victron-MPPT-Betriebsmodus-Sensoren (LIMITED) sind hier nur noch
+    die **sekundäre** Nachregelung wie im Original-Blueprint, nicht mehr
+    das primäre Freigabe-Signal.
+
+    Voraussetzung: myPV P2H Integration installiert und konfiguriert,
+    Victron Integration mit MPPT-Betriebsmodus-Sensor, sowie ein Sensor der
+    Victron-Remote-Monitoring-Integration mit der für **heute verbleibenden**
+    prognostizierten PV-Erzeugung in kWh (z. B. "Geschätzte Energieerzeugung
+    – Aktuell").
+
+  domain: automation
+  source_url: https://raw.githubusercontent.com/itsh-neumeier/restapi_mypv-p2h/master/blueprints/automation/energy/victron_mppt_p2h_forecast_de.yaml
+  author: Timo Neumeier
+
+  input:
+    target_power_entity:
+      name: myPV P2H – Leistungsvorgabe (Soll)
+      description: "number-Entity der myPV P2H Integration (0–3500 W)."
+      selector:
+        entity:
+          domain: number
+
+    solar_power_sensors:
+      name: Solarleistung-Sensoren
+      description: >-
+        Ein oder mehrere Sensoren mit der aktuellen PV-Leistung in Watt
+        (positiv = Erzeugung). Mehrere Sensoren werden summiert.
+      selector:
+        entity:
+          multiple: true
+          domain: sensor
+          device_class: power
+
+    house_consumption_sensors:
+      name: Hausverbrauch-Sensoren
+      description: >-
+        Ein oder mehrere Sensoren mit dem aktuellen Hausverbrauch in Watt
+        (positiv = Verbrauch, ohne Heizstab). Mehrere Sensoren werden summiert.
+      selector:
+        entity:
+          multiple: true
+          domain: sensor
+          device_class: power
+
+    mppt_mode_entities:
+      name: MPPT-Betriebsmodus-Sensoren
+      description: >-
+        Ein oder mehrere Victron MPPT-Betriebsmodus-Sensoren
+        (Tracker Operation Mode). Dient hier nur noch der sekundären
+        Nachregelung, wenn ein MPPT trotz offenem Freigabe-Gate limitiert.
+      selector:
+        entity:
+          multiple: true
+          domain: sensor
+
+    battery_soc_sensor:
+      name: Batterie-Ladestand-Sensor
+      description: Sensor mit dem aktuellen SOC in Prozent (0–100 %).
+      selector:
+        entity:
+          domain: sensor
+          device_class: battery
+
+    battery_capacity_ah_entity:
+      name: Akku-Kapazität-Sensor (Ah)
+      description: >-
+        Sensor mit dem vom BMS gemeldeten **Ist-Stand** in Ah beim aktuellen
+        SOC (z. B. Victron-Integration-Entity "battery capacity" — das ist
+        dort der Ist-Stand, NICHT die Nennkapazität!). Das Blueprint
+        rechnet daraus über den aktuellen SOC die Gesamtkapazität hoch
+        (Ist-Ah ÷ SOC × 100), zusammen mit der Nennspannung in kWh, um den
+        noch fehlenden Energiebedarf bis zum Ziel-SOC zu berechnen.
+      selector:
+        entity:
+          domain: sensor
+
+    battery_nominal_voltage:
+      name: Akku-Nennspannung
+      description: >-
+        Nennspannung des Akkus in V (z. B. 48 V oder 51,2 V bei LFP).
+        **Keine Live-Spannungs-Entity verwenden** — die schwankt mit
+        Ladezustand/Laststrom und würde die Kapazitätsberechnung verzerren.
+      default: 48
+      selector:
+        number:
+          min: 12
+          max: 800
+          step: 0.1
+          unit_of_measurement: "V"
+          mode: box
+
+    forecast_remaining_today_entity:
+      name: PV-Prognose – Rest heute
+      description: >-
+        Sensor der Victron-Remote-Monitoring-Integration mit der für den
+        Rest des heutigen Tages prognostizierten PV-Erzeugung in kWh
+        (z. B. "Geschätzte Energieerzeugung – Aktuell").
+      selector:
+        entity:
+          domain: sensor
+
+    soc_target:
+      name: Ziel-SOC bis Tagesende
+      description: >-
+        Der Akku soll bis Tagesende auf diesen SOC geladen sein. Der
+        Headroom wird gegen dieses Ziel berechnet.
+      default: 100
+      selector:
+        number:
+          min: 50
+          max: 100
+          step: 1
+          unit_of_measurement: "%"
+          mode: box
+
+    safety_margin_kwh:
+      name: Sicherheitsmarge
+      description: >-
+        Puffer in kWh, der von der Restprognose abgezogen wird, bevor der
+        Heizstab freigegeben wird. Größer = konservativer (Akku hat mehr
+        Vorrang), kleiner = der Heizstab wird großzügiger freigegeben.
+      default: 1.0
+      selector:
+        number:
+          min: 0
+          max: 20
+          step: 0.1
+          unit_of_measurement: "kWh"
+          mode: box
+
+    battery_soc_floor:
+      name: Absolute SOC-Untergrenze
+      description: >-
+        Unabhängig vom Headroom läuft der Heizstab nie, solange der SOC
+        unter diesem Wert liegt (Tiefentladeschutz).
+      default: 20
+      selector:
+        number:
+          min: 0
+          max: 100
+          step: 1
+          unit_of_measurement: "%"
+          mode: box
+
+    temperature_sensor:
+      name: Temperatursensor Heizstab / Pufferspeicher
+      description: "Temperatursensor der myPV P2H Integration oder externer Sensor."
+      selector:
+        entity:
+          domain: sensor
+          device_class: temperature
+
+    max_temperature:
+      name: Zieltemperatur (Abschalttemperatur)
+      description: Bei Erreichen dieser Temperatur wird der Heizstab auf 0 W gesetzt.
+      default: 60
+      selector:
+        number:
+          min: 20
+          max: 90
+          step: 1
+          unit_of_measurement: "°C"
+          mode: box
+
+    anti_limited_step:
+      name: Anti-Limited-Schrittweite
+      description: >-
+        Um diesen Wert wird die Leistung pro Zyklus erhöht, solange das
+        Gate offen ist und zusätzlich ein MPPT im Limited-Modus ist.
+      default: 100
+      selector:
+        number:
+          min: 50
+          max: 500
+          step: 50
+          unit_of_measurement: "W"
+          mode: box
+
+    check_interval:
+      name: Zyklisches Prüfintervall
+      description: Wie oft wird die Leistung neu berechnet?
+      default: "/15"
+      selector:
+        select:
+          mode: dropdown
+          options:
+            - label: Alle 5 Sekunden
+              value: "/5"
+            - label: Alle 10 Sekunden
+              value: "/10"
+            - label: Alle 15 Sekunden (Standard)
+              value: "/15"
+            - label: Alle 30 Sekunden
+              value: "/30"
+            - label: Alle 60 Sekunden
+              value: "/60"
+
+mode: single
+max_exceeded: silent
+
+trigger_variables:
+  mppt_mode_entities: !input mppt_mode_entities
+
+triggers:
+  - id: periodic_check
+    trigger: time_pattern
+    seconds: !input check_interval
+
+  - id: mppt_limited
+    trigger: template
+    value_template: >-
+      {% set ns = namespace(found=false) %}
+      {% for e in expand(mppt_mode_entities) %}
+        {% if e.state == 'LIMITED' %}
+          {% set ns.found = true %}
+        {% endif %}
+      {% endfor %}
+      {{ ns.found }}
+    for:
+      seconds: 5
+
+  - id: temp_reached
+    trigger: numeric_state
+    entity_id: !input temperature_sensor
+    above: !input max_temperature
+
+conditions: []
+
+actions:
+  - variables:
+      target_power_entity: !input target_power_entity
+      solar_power_sensors: !input solar_power_sensors
+      house_consumption_sensors: !input house_consumption_sensors
+      mppt_mode_entities: !input mppt_mode_entities
+      battery_soc_sensor: !input battery_soc_sensor
+      battery_capacity_ah_entity: !input battery_capacity_ah_entity
+      battery_nominal_voltage: !input battery_nominal_voltage
+      forecast_remaining_today_entity: !input forecast_remaining_today_entity
+      soc_target: !input soc_target
+      safety_margin_kwh: !input safety_margin_kwh
+      battery_soc_floor: !input battery_soc_floor
+      temperature_sensor: !input temperature_sensor
+      max_temperature: !input max_temperature
+      anti_limited_step: !input anti_limited_step
+
+  - variables:
+      solar_w: >-
+        {% set ns = namespace(total=0) %}
+        {% for e in expand(solar_power_sensors) %}
+          {% set ns.total = ns.total + [e.state | float(0), 0] | max %}
+        {% endfor %}
+        {{ ns.total }}
+      consumption_w: >-
+        {% set ns = namespace(total=0) %}
+        {% for e in expand(house_consumption_sensors) %}
+          {% set ns.total = ns.total + [e.state | float(0), 0] | max %}
+        {% endfor %}
+        {{ ns.total }}
+      surplus_w: "{{ [solar_w - consumption_w, 0] | max }}"
+      temp: "{{ states(temperature_sensor) | float(999) }}"
+      soc: "{{ states(battery_soc_sensor) | float(0) }}"
+      current_power: "{{ states(target_power_entity) | float(0) }}"
+      forecast_remaining_kwh: "{{ states(forecast_remaining_today_entity) | float(0) }}"
+      battery_capacity_kwh: >-
+        {% set current_ah = states(battery_capacity_ah_entity) | float(0) %}
+        {% set total_ah = current_ah / ([soc, 1] | max) * 100 %}
+        {{ total_ah * (battery_nominal_voltage | float(0)) / 1000 }}
+      any_limited: >-
+        {% set ns = namespace(found=false) %}
+        {% for e in expand(mppt_mode_entities) %}
+          {% if e.state == 'LIMITED' %}
+            {% set ns.found = true %}
+          {% endif %}
+        {% endfor %}
+        {{ ns.found }}
+
+  - variables:
+      energy_needed_kwh: >-
+        {{ [((soc_target | float(100)) - soc) / 100 * (battery_capacity_kwh | float(0)), 0] | max }}
+      headroom_kwh: >-
+        {{ forecast_remaining_kwh - energy_needed_kwh - (safety_margin_kwh | float(0)) }}
+
+  - variables:
+      gate_open: "{{ soc > (battery_soc_floor | float(0)) and headroom_kwh > 0 }}"
+
+  - variables:
+      new_power: >-
+        {% if temp >= max_temperature | float(90) %}
+          0
+        {% elif not gate_open %}
+          0
+        {% elif any_limited %}
+          {{ [current_power + anti_limited_step | float(100), 3500] | min | int }}
+        {% elif surplus_w > 0 %}
+          {{ [((surplus_w | int) // 50) * 50, 3500] | min | int }}
+        {% else %}
+          0
+        {% endif %}
+
+  - service: number.set_value
+    target:
+      entity_id: !input target_power_entity
+    data:
+      value: "{{ new_power }}"

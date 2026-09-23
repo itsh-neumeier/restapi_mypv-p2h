@@ -135,3 +135,32 @@ Schaltet bei Erreichen der Zieltemperatur ab. Freigabe über Victron MPPT LIMITE
 | Batterie-SOC-Sensor | Ladestand-Sensor |
 | MPPT-Betriebsmodus | Victron MPPT Sensor(en) |
 | Freigabemodus | LIMITED + SOC / Nur LIMITED / Nur SOC |
+
+## Blueprint – Prognosebasierte PV-Überschuss-Steuerung (Victron VRM)
+
+[![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fraw.githubusercontent.com%2Fitsh-neumeier%2Frestapi_mypv-p2h%2Fmaster%2Fblueprints%2Fautomation%2Fenergy%2Fvictron_mppt_p2h_forecast_de.yaml)
+
+Alternative zum obigen Blueprint: Der Heizstab bekommt weiterhin nie mehr als den real
+gemessenen PV-Überschuss zugewiesen, aber statt eines festen Mindest-SOC entscheidet pro
+Zyklus ein aus der Victron-VRM-Tagesprognose berechneter **Headroom**, ob der Heizstab
+freigegeben wird — dadurch werden auch frühe/kurze Erzeugungsspitzen genutzt, sofern die
+Resttagesprognose rechnerisch ausreicht, den Akku trotzdem bis zum Ziel-SOC zu laden. Reicht
+die Prognose nicht (oder ist der Prognose-/SOC-Sensor „nicht verfügbar"), bleibt der Heizstab
+aus — der Akku hat dann Vorrang. Der MPPT-LIMITED-Modus ist hier nur noch die sekundäre
+Nachregelung, nicht mehr das primäre Freigabe-Signal.
+
+`Headroom = Restprognose(heute, kWh) − (Ziel-SOC − SOC) / 100 × Akkukapazität(kWh) − Sicherheitsmarge`
+
+| Parameter | Beschreibung |
+|-----------|-------------|
+| Leistungsvorgabe (number) | `number.target_power` der Integration |
+| Solarleistung-/Hausverbrauch-Sensoren | wie beim Anti-Limited-Blueprint, für den realen Überschuss |
+| Batterie-SOC-Sensor | Ladestand-Sensor |
+| Akku-Kapazität-Sensor (Ah) | Ist-Stand in Ah beim aktuellen SOC, z. B. Victron „battery capacity" (**nicht** Nennkapazität — wird über SOC hochgerechnet) |
+| Akku-Nennspannung | in V (z. B. 48/51,2), Ah→kWh-Umrechnung für die Headroom-Berechnung — keine Live-Spannung |
+| PV-Prognose – Rest heute | Sensor der Victron-Remote-Monitoring-Integration (kWh), z. B. „Geschätzte Energieerzeugung – Aktuell" |
+| Ziel-SOC bis Tagesende | Standard 100 % |
+| Sicherheitsmarge | Puffer in kWh, Standard 1,0 kWh |
+| Absolute SOC-Untergrenze | Tiefentladeschutz unabhängig vom Headroom, Standard 20 % |
+| MPPT-Betriebsmodus | sekundäre Nachregelung wie im Anti-Limited-Blueprint |
+| Temperatursensor / Zieltemperatur | wie beim Anti-Limited-Blueprint |
