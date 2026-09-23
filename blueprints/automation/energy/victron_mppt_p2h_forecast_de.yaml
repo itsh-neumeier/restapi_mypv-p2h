@@ -86,18 +86,32 @@ blueprint:
           domain: sensor
           device_class: battery
 
-    battery_capacity_kwh:
-      name: Nutzbare Akkukapazität
+    battery_capacity_ah_entity:
+      name: Akku-Kapazität-Sensor (Ah)
       description: >-
-        Nutzbare Kapazität der Batterie in kWh. Wird benötigt, um aus dem
-        SOC-Abstand zum Ziel-SOC den noch fehlenden Energiebedarf in kWh
-        zu berechnen.
+        Sensor mit dem vom BMS gemeldeten **Ist-Stand** in Ah beim aktuellen
+        SOC (z. B. Victron-Integration-Entity "battery capacity" — das ist
+        dort der Ist-Stand, NICHT die Nennkapazität!). Das Blueprint
+        rechnet daraus über den aktuellen SOC die Gesamtkapazität hoch
+        (Ist-Ah ÷ SOC × 100), zusammen mit der Nennspannung in kWh, um den
+        noch fehlenden Energiebedarf bis zum Ziel-SOC zu berechnen.
+      selector:
+        entity:
+          domain: sensor
+
+    battery_nominal_voltage:
+      name: Akku-Nennspannung
+      description: >-
+        Nennspannung des Akkus in V (z. B. 48 V oder 51,2 V bei LFP).
+        **Keine Live-Spannungs-Entity verwenden** — die schwankt mit
+        Ladezustand/Laststrom und würde die Kapazitätsberechnung verzerren.
+      default: 48
       selector:
         number:
-          min: 0
-          max: 200
+          min: 12
+          max: 800
           step: 0.1
-          unit_of_measurement: "kWh"
+          unit_of_measurement: "V"
           mode: box
 
     forecast_remaining_today_entity:
@@ -244,7 +258,8 @@ actions:
       house_consumption_sensors: !input house_consumption_sensors
       mppt_mode_entities: !input mppt_mode_entities
       battery_soc_sensor: !input battery_soc_sensor
-      battery_capacity_kwh: !input battery_capacity_kwh
+      battery_capacity_ah_entity: !input battery_capacity_ah_entity
+      battery_nominal_voltage: !input battery_nominal_voltage
       forecast_remaining_today_entity: !input forecast_remaining_today_entity
       soc_target: !input soc_target
       safety_margin_kwh: !input safety_margin_kwh
@@ -271,6 +286,10 @@ actions:
       soc: "{{ states(battery_soc_sensor) | float(0) }}"
       current_power: "{{ states(target_power_entity) | float(0) }}"
       forecast_remaining_kwh: "{{ states(forecast_remaining_today_entity) | float(0) }}"
+      battery_capacity_kwh: >-
+        {% set current_ah = states(battery_capacity_ah_entity) | float(0) %}
+        {% set total_ah = current_ah / ([soc, 1] | max) * 100 %}
+        {{ total_ah * (battery_nominal_voltage | float(0)) / 1000 }}
       any_limited: >-
         {% set ns = namespace(found=false) %}
         {% for e in expand(mppt_mode_entities) %}

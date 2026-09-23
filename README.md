@@ -156,7 +156,8 @@ Nachregelung, nicht mehr das primäre Freigabe-Signal.
 | Leistungsvorgabe (number) | `number.target_power` der Integration |
 | Solarleistung-/Hausverbrauch-Sensoren | wie beim Anti-Limited-Blueprint, für den realen Überschuss |
 | Batterie-SOC-Sensor | Ladestand-Sensor |
-| Nutzbare Akkukapazität | in kWh, für die Headroom-Berechnung |
+| Akku-Kapazität-Sensor (Ah) | Ist-Stand in Ah beim aktuellen SOC, z. B. Victron „battery capacity" (**nicht** Nennkapazität — wird über SOC hochgerechnet) |
+| Akku-Nennspannung | in V (z. B. 48/51,2), Ah→kWh-Umrechnung für die Headroom-Berechnung — keine Live-Spannung |
 | PV-Prognose – Rest heute | Sensor der Victron-Remote-Monitoring-Integration (kWh), z. B. „Geschätzte Energieerzeugung – Aktuell" |
 | Ziel-SOC bis Tagesende | Standard 100 % |
 | Sicherheitsmarge | Puffer in kWh, Standard 1,0 kWh |
